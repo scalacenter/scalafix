@@ -4,21 +4,28 @@ import buildinfo.RulesBuildInfo
 import scalafix.Versions
 import scalafix.interfaces.Scalafix
 import scalafix.interfaces.ScalafixArguments
+import scalafix.internal.reflect.ClasspathOps
 import scalafix.internal.reflect.ScalafixToolbox
 import scalafix.internal.v1.Args
 import scalafix.internal.v1.MainOps
 
 final class ScalafixImpl extends Scalafix {
 
-  // One toolbox per Scalafix instance: dropping the instance drops its
-  // compiled-rule caches (https://github.com/scalacenter/scalafix/issues/782).
+  // Shared toolbox + default tool classpath (part of cache keys), so that
+  // dropping this instance drops its compiled-rule caches (#782).
   private val toolbox = new ScalafixToolbox
+  private val defaultToolClasspath = ClasspathOps.thisClassLoader
 
   override def toString: String =
     s"""Scalafix v${scalafixVersion()}"""
 
   override def newArguments(): ScalafixArguments =
-    ScalafixArgumentsImpl(Args.default.copy(toolbox = toolbox))
+    ScalafixArgumentsImpl(
+      Args.default.copy(
+        toolbox = toolbox,
+        toolClasspath = defaultToolClasspath
+      )
+    )
 
   override def mainHelp(screenWidth: Int): String = {
     MainOps.helpMessage(screenWidth)

@@ -1,6 +1,7 @@
 package scalafix.internal.reflect
 
 import java.net.URLClassLoader
+import java.security.MessageDigest
 import java.util.concurrent.ConcurrentHashMap
 
 import metaconfig.Configured
@@ -8,12 +9,9 @@ import metaconfig.Input
 import scalafix.internal.config.MetaconfigOps._
 
 /**
- * Compiles rules from source and memoizes results for its own lifetime.
- *
- * By default each `RuleDecoder.Settings` (and each CLI `Args`) owns a private
- * toolbox. `ScalafixImpl` instead injects one shared toolbox into all its
- * arguments, so that API clients control when caching starts and stops by
- * creating or dropping `Scalafix` instances (issue #782).
+ * Compiles rules from source, memoizing results for its own lifetime (#782).
+ * Owned by each `RuleDecoder.Settings`/`Args` by default, or shared across all
+ * arguments of a `ScalafixImpl` so that clients control the cache lifecycle.
  */
 class ScalafixToolbox {
   import ScalafixToolbox._
@@ -26,12 +24,15 @@ class ScalafixToolbox {
       code: Input,
       toolClasspath: URLClassLoader
   ): Configured[CompiledRules] = {
-    // Content is part of the key so that editing a file: rule between calls
-    // triggers a recompilation instead of serving stale classes.
-    val key = RuleKey(code, new String(code.chars), toolClasspath)
-    val memo = ruleCache.computeIfAbsent(
+    val key = RuleKey(code, toolClasspath)
+    // digest on the value side: editing a file: rule replaces its entry, so
+    // stale classes are neither served nor retained
+    val digest = sha256(code.chars)
+    val memo = ruleCache.compute(
       key,
-      _ => new CompilationMemo(() => compile(code, toolClasspath))
+      (_, cached) =>
+        if (cached != null && cached.contentDigest == digest) cached
+        else new CompilationMemo(digest, () => compile(code, toolClasspath))
     )
     val result = memo.value
     result match {
@@ -59,15 +60,20 @@ object ScalafixToolbox {
   case class CompiledRules(classloader: ClassLoader, fqns: Seq[String])
 
   // input carries the source identity (path), which the compilers consume
-  private case class RuleKey(
-      input: Input,
-      content: String,
-      toolClasspath: URLClassLoader
-  )
+  private case class RuleKey(input: Input, toolClasspath: URLClassLoader)
 
   // lazy val, so that concurrent callers of the same key block on the memo
   // instead of compiling duplicates or locking the whole cache
-  private class CompilationMemo(thunk: () => Configured[CompiledRules]) {
+  private class CompilationMemo(
+      val contentDigest: Seq[Byte],
+      thunk: () => Configured[CompiledRules]
+  ) {
     lazy val value: Configured[CompiledRules] = thunk()
   }
+
+  private def sha256(chars: Array[Char]): Seq[Byte] =
+    MessageDigest
+      .getInstance("SHA-256")
+      .digest(new String(chars).getBytes("UTF-8"))
+      .toSeq
 }
