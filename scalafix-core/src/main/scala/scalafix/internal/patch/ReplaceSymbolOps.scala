@@ -3,7 +3,6 @@ package scalafix.internal.patch
 import scala.annotation.tailrec
 
 import scala.meta._
-import scala.meta.internal.trees._
 
 import scalafix.internal.util.SymbolOps
 import scalafix.internal.util.SymbolOps.Root

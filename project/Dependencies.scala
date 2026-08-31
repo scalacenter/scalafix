@@ -13,11 +13,12 @@ object Dependencies {
   val scala36 = "3.6.4"
   val scala37 = "3.7.4"
   val scala38 = "3.8.4"
-  val scala3LTS = scala33
-  val scala3Next = sys.props.getOrElse("scala3.nightly", scala38)
+  val scala39 = "3.9.0"
+  val scala3LTS = scala39
+  val scala3Next = sys.props.getOrElse("scala3.nightly", scala39)
 
   val scala2Versions = Seq(scala212, scala213)
-  val scala3Versions = Seq(scala33, scala35, scala36, scala37, scala38)
+  val scala3Versions = Seq(scala33, scala35, scala36, scala37, scala38, scala39)
 
   val bijectionCoreV = "0.9.8"
   val collectionCompatV = "2.14.0"
@@ -26,13 +27,13 @@ object Dependencies {
   val commontTextV = "1.15.0"
   val googleDiffV = "1.3.0"
   val jgitV = "5.13.5.202508271544-r"
-  val metaconfigV = "0.18.6"
+  val metaconfigV = "0.18.7"
   val nailgunV = "0.9.1"
   val scalaXmlV = "2.4.0"
-  val scalametaV = "4.17.0"
+  val scalametaV = "4.17.3"
   val scalatagsV = "0.13.1"
   val scalatestV = "3.2.20"
-  val munitV = "1.3.1"
+  val munitV = "1.3.5"
 
   val orgScalaCenter = "ch.epfl.scala"
   val orgScalameta = "org.scalameta"

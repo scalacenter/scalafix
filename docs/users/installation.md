@@ -9,7 +9,7 @@ Scalafix is tested to work with:
 
 * **macOS, Linux or Windows**
 * **Java LTS (8, 11, 17, 21 or 25)**
-* **Scala @SCALA212@, @SCALA213@, @SCALA3LTS@ LTS or @SCALA3NEXT@**
+* **Scala @SCALA212@, @SCALA213@, @SCALA3LTS@ LTS**
 
 Note that other setups may work, but could result in unexpected behavior.
 
@@ -84,7 +84,7 @@ in 2.13.x or 3.x). To fix both problems, add the following settings to `build.sb
   */
  inThisBuild(
    List(
-     scalaVersion := "@SCALA212@", // @SCALA213@, @SCALA3LTS@ or @SCALA3NEXT@
+     scalaVersion := "@SCALA212@", // @SCALA213@, @SCALA3LTS@
 +    semanticdbEnabled := true, // enable SemanticDB
 +    semanticdbVersion := scalafixSemanticdb.revision // only required for Scala 2.x
    )
@@ -107,7 +107,7 @@ in 2.13.x or 3.x). To fix both problems, add the following settings to `build.sb
   * https://www.scala-sbt.org/1.x/docs/sbt-1.3-Release-Notes.html#SemanticDB+support
   */
  lazy val myproject = project.settings(
-   scalaVersion := "@SCALA212@", // @SCALA213@, @SCALA3LTS@ or @SCALA3NEXT@
+   scalaVersion := "@SCALA212@", // @SCALA213@, @SCALA3LTS@
 +  semanticdbEnabled := true, // enable SemanticDB
 +  semanticdbVersion := scalafixSemanticdb.revision, // only required for Scala 2.x
 +  scalacOptions += {

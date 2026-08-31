@@ -649,6 +649,15 @@ class OrganizeImports(
         Seq(others, wildcards) map (_.sortBy(treeSyntax)) reduce (_ ++ _)
       case SymbolsFirst =>
         Seq(others, wildcards) map sortImporteesSymbolsFirst reduce (_ ++ _)
+      case IntelliJ =>
+        val Importees(names, renames, unimports, givens, givenAll, wildcard) =
+          importer.importees
+        names.sortBy(treeSyntax) ++
+          renames.sortBy(treeSyntax) ++
+          unimports.sortBy(treeSyntax) ++
+          wildcard ++
+          givens.sortBy(treeSyntax) ++
+          givenAll
       case Keep =>
         importer.importees
     }
@@ -794,10 +803,16 @@ class OrganizeImports(
             val line = lines.next()
             lines.exists(_ != line)
           }
-          val useOuterSpace = !isMultiline && i.importees
+          val origImporters = i.importees
             .flatMap(_.originalPrototype().parent)
             .distinct
-            .exists(_.hasSpaceInCurly)
+          val useOuterSpace =
+            !isMultiline && origImporters.exists(_.hasSpaceInCurly)
+          // Preserve a trailing comma if the (single) source importer had one.
+          val trailingComma = isMultiline && (origImporters match {
+            case Seq(origImporter: Importer) => origImporter.hasTrailingComma
+            case _ => false
+          })
           sb.append('{')
           val sep = if (isMultiline) "\n  " else " "
           if (isMultiline) sb.append(sep)
@@ -810,8 +825,10 @@ class OrganizeImports(
             sb.append(treeSyntax(i2))
             proto.endComment.foreach(appendEndComment)
           }
-          if (isMultiline) sb.append('\n')
-          else if (useOuterSpace) sb.append(' ')
+          if (isMultiline) {
+            if (trailingComma) sb.append(',')
+            sb.append('\n')
+          } else if (useOuterSpace) sb.append(' ')
           sb.append('}')
         }
         i.endComment.foreach(appendEndComment)
@@ -1199,6 +1216,13 @@ object OrganizeImports {
         tokens.getWideOpt(idx).exists(_.is[Token.RightBrace])
       }
       lspace || rspace
+    }
+
+    def hasTrailingComma: Boolean = {
+      val tokens = importer.importees.last.tokens
+      // Skip trivia between the last importee and the next token.
+      val idx = tokens.skipWideIf(_.is[Token.HTrivia], tokens.length)
+      tokens.getWideOpt(idx).exists(_.is[Token.Comma])
     }
 
   }
