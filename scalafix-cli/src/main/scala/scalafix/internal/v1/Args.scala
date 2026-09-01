@@ -101,7 +101,8 @@ case class Args(
     version: Boolean = false,
     @Section("Semantic options")
     @Description(
-      "Full classpath of the files to fix, required for semantic rules. " +
+      "Full classpath of the files to fix, required for semantic rules, as a set of " +
+        "filesystem paths separated by ':' on Unix or ';' on Windows. " +
         "The source files that should be fixed must be compiled with semanticdb-scalac. " +
         "Dependencies are required by rules like ExplicitResultTypes, but the dependencies do not " +
         "need to be compiled with semanticdb-scalac."
