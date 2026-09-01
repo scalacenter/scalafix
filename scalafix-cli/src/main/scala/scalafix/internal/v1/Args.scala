@@ -101,7 +101,7 @@ case class Args(
     version: Boolean = false,
     @Section("Semantic options")
     @Description(
-      "Full classpath of the files to fix, required for semantic rules, as a set of " +
+      "Full classpath of the files to fix, required for semantic rules, as a list of " +
         "filesystem paths separated by ':' on Unix or ';' on Windows. " +
         "The source files that should be fixed must be compiled with semanticdb-scalac. " +
         "Dependencies are required by rules like ExplicitResultTypes, but the dependencies do not " +
@@ -160,7 +160,7 @@ case class Args(
     )
     exclude: List[PathMatcher] = Nil,
     @Description(
-      "Additional classpath for compiling and classloading custom rules, as a set of filesystem paths, separated by ':' on Unix or ';' on Windows."
+      "Additional classpath for compiling and classloading custom rules, as a list of filesystem paths, separated by ':' on Unix or ';' on Windows."
     )
     toolClasspath: URLClassLoader = ClasspathOps.thisClassLoader,
     @Description("The encoding to use for reading/writing files")
