@@ -80,4 +80,55 @@ class OrganizeImportsConfigSuite extends AnyFunSuite {
       "Expected OrganizeImports to succeed when RemoveUnused is not configured"
     )
   }
+
+  private def checkRemoveUnusedScalaVersion(
+      scalaVersion: String,
+      expectedOk: Boolean
+  ): Unit = {
+    val rawConfig =
+      """|rules = [OrganizeImports]
+        |OrganizeImports.removeUnused = true
+        |""".stripMargin
+    val conf = Conf.parseString("test", rawConfig).get
+    val config = Configuration()
+      .withConf(conf)
+      .withScalaVersion(scalaVersion)
+      .withScalacOptions(List("-Wunused:all"))
+    val result = new OrganizeImports().withConfiguration(config)
+    assert(
+      result.isOk == expectedOk,
+      s"OrganizeImports.removeUnused with Scala $scalaVersion: expected isOk=$expectedOk, got $result"
+    )
+    if (!expectedOk) {
+      result match {
+        case Configured.NotOk(error) =>
+          assert(
+            error.msg.contains("not supported") &&
+              error.msg.contains("3.3.4"),
+            s"Error should mention unsupported compiler. Got: ${error.msg}"
+          )
+        case _ => fail("Expected Configured.NotOk")
+      }
+    }
+  }
+
+  test("OrganizeImports.removeUnused accepts Scala 3.10.0-RC1") {
+    checkRemoveUnusedScalaVersion("3.10.0-RC1", expectedOk = true)
+  }
+
+  test("OrganizeImports.removeUnused accepts Scala 3.3.4") {
+    checkRemoveUnusedScalaVersion("3.3.4", expectedOk = true)
+  }
+
+  test("OrganizeImports.removeUnused accepts Scala 2.13.18") {
+    checkRemoveUnusedScalaVersion("2.13.18", expectedOk = true)
+  }
+
+  test("OrganizeImports.removeUnused rejects Scala 3.3.3") {
+    checkRemoveUnusedScalaVersion("3.3.3", expectedOk = false)
+  }
+
+  test("OrganizeImports.removeUnused rejects Scala 3.1.3") {
+    checkRemoveUnusedScalaVersion("3.1.3", expectedOk = false)
+  }
 }

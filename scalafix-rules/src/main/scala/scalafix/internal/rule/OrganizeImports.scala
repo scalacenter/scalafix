@@ -865,8 +865,7 @@ object OrganizeImports {
       scalaVersion: String
   ): Configured[Rule] = {
     val hasCompilerSupport =
-      Seq("3.0", "3.1", "3.2", "3.3.0", "3.3.1", "3.3.2", "3.3.3")
-        .forall(v => !scalaVersion.startsWith(v))
+      ScalaVersion.unusedDiagnosticsInSemanticdb(scalaVersion)
 
     val hasWarnUnused = hasCompilerSupport && {
       val warnUnusedPrefix = Set("-Wunused", "-Ywarn-unused")

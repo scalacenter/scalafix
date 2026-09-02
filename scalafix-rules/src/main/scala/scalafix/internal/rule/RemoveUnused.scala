@@ -6,6 +6,7 @@ import scala.meta._
 import scala.meta.tokens.Token
 
 import metaconfig.Configured
+import scalafix.internal.config.ScalaVersion
 import scalafix.v1._
 
 class RemoveUnused(config: RemoveUnusedConfig)
@@ -33,8 +34,7 @@ class RemoveUnused(config: RemoveUnusedConfig)
   private def warnUnusedString = List("-Wall", "-Xlint", "-Xlint:unused")
   override def withConfiguration(config: Configuration): Configured[Rule] = {
     val diagnosticsAvailableInSemanticdb =
-      Seq("3.0", "3.1", "3.2", "3.3.0", "3.3.1", "3.3.2", "3.3.3")
-        .forall(v => !config.scalaVersion.startsWith(v))
+      ScalaVersion.unusedDiagnosticsInSemanticdb(config.scalaVersion)
 
     val hasWarnUnused = config.scalacOptions.exists(option =>
       warnUnusedPrefix.exists(prefix => option.startsWith(prefix)) ||
