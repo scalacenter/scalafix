@@ -387,7 +387,7 @@ class OrganizeImports(
     type SortFunc = (StringBuilder, Boolean, List[Importee]) => Unit
     def sortSyntax(f: SortFunc)(imp: Importer): String = {
       implicit val sb = new StringBuilder
-      sb.append(treeSyntax(imp.ref)).append('.')
+      sb.append(refSyntax(imp.ref)).append('.')
       f(sb, imp.isCurlyBraced, imp.importees)
       sb.toString()
     }
@@ -1154,8 +1154,17 @@ object OrganizeImports {
   }
 
   @inline
-  private def refSyntax(ref: Term.Ref)(implicit dialect: Dialect): String =
-    if (!ref.pos.isEmpty) ref.pos.text else treeSyntax(ref)
+  private def refSyntax(ref: Term)(implicit dialect: Dialect): String =
+    ref match {
+      case Term.Select(qual, name) if !name.pos.isEmpty =>
+        refSyntax(qual) + "." + name.pos.text
+      case _ if !ref.pos.isEmpty =>
+        ref.pos.text
+      case Term.Select(qual, name) =>
+        refSyntax(qual) + "." + treeSyntax(name)
+      case _ =>
+        treeSyntax(ref)
+    }
 
   @inline
   private def treeSyntax(tree: Tree)(implicit dialect: Dialect): String =

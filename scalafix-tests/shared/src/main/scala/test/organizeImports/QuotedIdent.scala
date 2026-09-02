@@ -13,4 +13,7 @@ object QuotedIdent {
     object Other
     object SimpleSpanProcessor
   }
+  object `given` {
+    object Other
+  }
 }
