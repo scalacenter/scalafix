@@ -1,11 +1,16 @@
 package scalafix.internal.rule
 
+import java.nio.file.Files
+import java.util.zip.ZipFile
+
 import scala.annotation.tailrec
+import scala.collection.concurrent.TrieMap
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 import scala.util.Try
 
 import scala.meta._
+import scala.meta.io.AbsolutePath
 
 import metaconfig.Conf
 import metaconfig.Configured
@@ -44,13 +49,38 @@ class OrganizeImports(
     config: OrganizeImportsConfig,
     // shadows the default implicit always on scope (Dialect.current, matching the runtime Scala version)
     implicit val targetDialect: Dialect = Dialect.current,
-    scala3DialectForScala3Paths: Boolean = false
+    scala3DialectForScala3Paths: Boolean = false,
+    classpath: List[AbsolutePath] = Nil
 ) extends SemanticRule("OrganizeImports") {
   import OrganizeImports._
   import ImportMatcher._
 
   private lazy val scala3TargetDialect =
-    new OrganizeImports(config, dialects.Scala3)
+    new OrganizeImports(config, dialects.Scala3, classpath = classpath)
+
+  private val classfileCache = TrieMap.empty[String, Boolean]
+
+  /**
+   * Whether a class file exists on the compilation classpath, regardless of
+   * whether its symbol information can be read (a Scala 3 class file cannot,
+   * see [[https://github.com/scalacenter/scalafix/issues/2049 issue #2049]]).
+   */
+  private def hasClassfile(relativePath: String): Boolean =
+    classfileCache.getOrElseUpdate(
+      relativePath,
+      classpath.exists { entry =>
+        val path = entry.toNIO
+        if (Files.isDirectory(path))
+          Files.isRegularFile(path.resolve(relativePath))
+        else if (Files.isRegularFile(path) && path.toString.endsWith(".jar"))
+          Try {
+            val zip = new ZipFile(path.toFile)
+            try zip.getEntry(relativePath) != null
+            finally zip.close()
+          }.getOrElse(false)
+        else false
+      }
+    )
 
   private val matchers = buildImportMatchers(config)
 
@@ -70,7 +100,14 @@ class OrganizeImports(
       case _ => None
     }).getOrElse(Configured.Ok(config))
       .andThen(checkRemoveUnusedConflict(_, cfg.conf))
-      .andThen(checkScalacOptions(_, cfg.scalacOptions, cfg.scalaVersion))
+      .andThen(
+        checkScalacOptions(
+          _,
+          cfg.scalacOptions,
+          cfg.scalaVersion,
+          cfg.scalacClasspath
+        )
+      )
 
   override def fix(implicit doc: SemanticDocument): Patch = {
     val that = (doc.input, scala3DialectForScala3Paths) match {
@@ -140,7 +177,9 @@ class OrganizeImports(
         // Re-run deduplication: an expanded wildcard may surface a name that
         // is also imported explicitly by a sibling importer of the same prefix.
         deduplicateImportees(
-          dedupedIterator.map(new WildcardImportExpander(threshold).apply)
+          dedupedIterator.map(
+            new WildcardImportExpander(threshold, hasClassfile(_)).apply
+          )
         )
       }
       val mergedIterator =
@@ -872,7 +911,8 @@ object OrganizeImports {
   private def checkScalacOptions(
       conf: OrganizeImportsConfig,
       scalacOptions: List[String],
-      scalaVersion: String
+      scalaVersion: String,
+      classpath: List[AbsolutePath]
   ): Configured[Rule] = {
     val hasCompilerSupport =
       Seq("3.0", "3.1", "3.2", "3.3.0", "3.3.1", "3.3.2", "3.3.3")
@@ -921,7 +961,12 @@ object OrganizeImports {
 
     if (!conf.removeUnused || hasWarnUnused)
       Configured.ok(
-        new OrganizeImports(conf, targetDialect, scala3DialectForScala3Paths)
+        new OrganizeImports(
+          conf,
+          targetDialect,
+          scala3DialectForScala3Paths,
+          classpath
+        )
       )
     else if (hasCompilerSupport)
       Configured.error(
@@ -1153,11 +1198,13 @@ object OrganizeImports {
    * Replaces standalone wildcards with the explicit members of their prefix
    * that are actually used in the document (see [[apply]]). Instantiated once
    * per run: it owns the document-wide usage model and memoizes the scope
-   * lookups shared by all importers.
+   * lookups shared by all importers. `hasClassfile` tells whether a class file
+   * exists on the classpath (see [[walkOwners]]).
    */
-  private class WildcardImportExpander(threshold: Int)(implicit
-      doc: SemanticDocument
-  ) {
+  private class WildcardImportExpander(
+      threshold: Int,
+      hasClassfile: String => Boolean
+  )(implicit doc: SemanticDocument) {
 
     /**
      * Universal supertypes whose members are always in scope without an import.
@@ -1278,6 +1325,11 @@ object OrganizeImports {
         case Some(select: Type.Select) if select.name eq name =>
           classifySelectedMember(select.qual, name.symbol, unmodeled)
         case Some(project: Type.Project) if project.name eq name => ()
+        // An infix or prefix operator call is a selection on its operand.
+        case Some(infix: Term.ApplyInfix) if infix.op eq name =>
+          classifySelectedMember(infix.lhs, name.symbol, unmodeled)
+        case Some(unary: Term.ApplyUnary) if unary.op eq name =>
+          classifySelectedMember(unary.arg, name.symbol, unmodeled)
         case Some(member: Member) if member.name eq name => ()
         case _ =>
           val symbol = name.symbol
@@ -1446,7 +1498,8 @@ object OrganizeImports {
      * whether the scope could be modeled precisely — `false` when an ancestor's
      * definition is not on the classpath. For a package this also walks its
      * package object, whose members — including inherited ones — are visible
-     * through the package wildcard. Memoized per run: the scope lookups of
+     * through the package wildcard; a package object that exists but cannot be
+     * read makes the scope unmodelable. Memoized per run: the scope lookups of
      * [[isMemberOfType]], [[isBoundByEnclosingScope]] and [[apply]] repeat the
      * same prefixes.
      */
@@ -1480,7 +1533,14 @@ object OrganizeImports {
               // object, which we must walk.
               owners += prefix
               val packageObject = Symbol(value + "package.")
-              packageObject.infoNoThrow.isEmpty || walk(packageObject)
+              packageObject.infoNoThrow match {
+                case Some(_) => walk(packageObject)
+                // Without readable symbol information, the package is
+                // modelable only if it has no package object at all — as
+                // opposed to one compiled to TASTy, whose class file exists
+                // but cannot be read.
+                case None => !hasClassfile(value + "package.class")
+              }
             } else walk(prefix)
           (owners.toSet, complete)
         }
@@ -1581,10 +1641,12 @@ object OrganizeImports {
      * be modeled by [[exposedOwners]]. An unresolvable `<pkg>/package.` symbol
      * usually means no package object at all, but on Scala 3 it can also mean
      * one that exists on the classpath yet is unreadable (metacp reads Scala 2
-     * pickles, not TASTy). The document's own references prove existence: a
-     * used or unmodeled symbol owned by the package object. Expanding anyway
-     * would emit the plain-package members while dropping the package-object
-     * ones, breaking compilation.
+     * pickles, not TASTy). [[walkOwners]] already fails closed when the package
+     * object's class file is found on the classpath; this is a fallback for an
+     * incomplete classpath, where the document's own references prove
+     * existence: a used or unmodeled symbol owned by the package object.
+     * Expanding anyway would emit the plain-package members while dropping the
+     * package-object ones, breaking compilation.
      */
     private def hasUnreadablePackageObject(
         prefix: Symbol,

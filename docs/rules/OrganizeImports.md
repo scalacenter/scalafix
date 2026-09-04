@@ -453,9 +453,10 @@ the inverse of
 > ([#2049](https://github.com/scalacenter/scalafix/issues/2049)), so a
 > prefix compiled by Scala 3 and read from the classpath cannot be modeled:
 > in practice expansion is limited to prefixes defined in the same file and
-> to plain packages. A package is not expanded when the file provably uses
-> members of a package object that cannot be read, so an unreadable package
-> object never causes a used member to be dropped. Top-level implicits
+> to plain packages. A package whose package object is compiled by Scala 3 —
+> its class file exists on the classpath but its symbol information cannot be
+> read — is left untouched, so an unreadable package object never causes a
+> member declared in it or inherited through it to be dropped. Top-level implicits
 > declared in *other* files of a package cannot be detected: only the ones
 > actually used in the file prevent the expansion of a package wildcard.
 > 
