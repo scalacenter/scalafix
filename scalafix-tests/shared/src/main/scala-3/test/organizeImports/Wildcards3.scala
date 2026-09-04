@@ -8,3 +8,4 @@ trait Alpha
 given alpha: Alpha = ???
 def topLevelDef: Int = 1
 val topLevelVal: Int = 2
+class Box[T](val v: T)

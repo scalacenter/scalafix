@@ -178,7 +178,11 @@ class OrganizeImports(
         // is also imported explicitly by a sibling importer of the same prefix.
         deduplicateImportees(
           dedupedIterator.map(
-            new WildcardImportExpander(threshold, hasClassfile(_)).apply
+            new WildcardImportExpander(
+              threshold,
+              imports.flatMap(_.importers),
+              hasClassfile(_)
+            ).apply
           )
         )
       }
@@ -1198,11 +1202,13 @@ object OrganizeImports {
    * Replaces standalone wildcards with the explicit members of their prefix
    * that are actually used in the document (see [[apply]]). Instantiated once
    * per run: it owns the document-wide usage model and memoizes the scope
-   * lookups shared by all importers. `hasClassfile` tells whether a class file
-   * exists on the classpath (see [[walkOwners]]).
+   * lookups shared by all importers. `importers` are the document's global
+   * importers; `hasClassfile` tells whether a class file exists on the
+   * classpath (see [[walkOwners]] and [[resolveByClassfile]]).
    */
   private class WildcardImportExpander(
       threshold: Int,
+      importers: Seq[Importer],
       hasClassfile: String => Boolean
   )(implicit doc: SemanticDocument) {
 
@@ -1246,6 +1252,25 @@ object OrganizeImports {
           else symbol :: Nil
         }
         .toSet
+
+    /**
+     * The prefixes of the global wildcard importers, for
+     * [[resolveByClassfile]].
+     */
+    private val wildcardPrefixes: List[Symbol] =
+      importers.iterator
+        .filter(_.importees.exists(_.is[Importee.Wildcard]))
+        .map(_.ref.symbol)
+        .filter(_.isGlobal)
+        .toList
+
+    /**
+     * Whether the document contains an unqualified reference whose symbol
+     * SemanticDB does not record and that could not be recovered (see
+     * [[resolveByClassfile]]). Such a reference may depend on any wildcard, so
+     * [[apply]] then leaves every wildcard untouched.
+     */
+    private var hasUnresolvedReference: Boolean = false
 
     /**
      * The wildcard-import dependencies of the document:
@@ -1333,9 +1358,44 @@ object OrganizeImports {
         case Some(member: Member) if member.name eq name => ()
         case _ =>
           val symbol = name.symbol
-          if (symbol.isGlobal && !isBoundByEnclosingScope(name, symbol))
+          if (symbol.isNone) {
+            val recovered = resolveByClassfile(name)
+            if (recovered.isEmpty) hasUnresolvedReference = true
+            else used ++= recovered.filterNot(isBoundByEnclosingScope(name, _))
+          } else if (symbol.isGlobal && !isBoundByEnclosingScope(name, symbol))
             used += symbol
       }
+
+    /**
+     * Recovers the class a `new C(..)` / `extends C(..)` names when SemanticDB
+     * has no occurrence for it — Scala 3 omits it when the class's type
+     * arguments are inferred — by looking `C`'s class file up under each
+     * wildcard prefix on the classpath. Returns the matching class symbols
+     * (normally one), or nothing when the reference cannot be recovered.
+     */
+    private def resolveByClassfile(name: Name): List[Symbol] =
+      name.parent match {
+        case Some(_: Init) =>
+          wildcardPrefixes.flatMap { prefix =>
+            classfilePrefix(prefix)
+              .filter(dir => hasClassfile(dir + name.value + ".class"))
+              .map(_ => Symbol(prefix.value + name.value + "#"))
+          }
+        case _ => Nil
+      }
+
+    /**
+     * The class file path prefix of the members of a package (`p/`) or of a
+     * (possibly nested) object (`p/O$`); `None` for any other kind of prefix.
+     */
+    private def classfilePrefix(symbol: Symbol): Option[String] = {
+      val value = symbol.value
+      if (symbol.isNone) None
+      else if (value.endsWith("/")) Some(value)
+      else if (value.endsWith("."))
+        classfilePrefix(symbol.owner).map(_ + symbol.displayName + "$")
+      else None
+    }
 
     /**
      * Whether the reference to `symbol` at `name` is bound by an enclosing
@@ -1662,26 +1722,27 @@ object OrganizeImports {
     /**
      * Replaces a standalone wildcard with the explicit members of its prefix
      * that are actually used in the document. The importer is left untouched
-     * when the prefix's scope cannot be modeled precisely (see
-     * [[exposedOwners]] and [[hasUnreadablePackageObject]]), when the scope
-     * exposes a member used through an unmodelable selection (an extension
-     * method — see `unmodeledOwners`), when the scope provides implicits (see
-     * [[declaresImplicits]] and `implicitOwners`: an implicit found through an
-     * import is invisible in source — it may even be summoned inside a macro
-     * expansion — and the names of the implicit members of a syntax object are
-     * implementation details that vary across Scala versions), when a used name
-     * cannot be rendered as an explicit importee (a `$` identifier), when a
-     * used name also resolves to a symbol from another scope (a wildcard import
-     * nested in a template shadowing the same name: raising this import to an
-     * explicit one would make that inner reference ambiguous), when nothing
-     * from it is used, or when the resulting importees — pre-existing selectors
-     * included — would reach `threshold` (beyond which a wildcard is
-     * preferable, and would anyway be re-introduced by
+     * when a reference in the document could not be resolved (see
+     * `hasUnresolvedReference`), when the prefix's scope cannot be modeled
+     * precisely (see [[exposedOwners]] and [[hasUnreadablePackageObject]]),
+     * when the scope exposes a member used through an unmodelable selection (an
+     * extension method — see `unmodeledOwners`), when the scope provides
+     * implicits (see [[declaresImplicits]] and `implicitOwners`: an implicit
+     * found through an import is invisible in source — it may even be summoned
+     * inside a macro expansion — and the names of the implicit members of a
+     * syntax object are implementation details that vary across Scala
+     * versions), when a used name cannot be rendered as an explicit importee (a
+     * `$` identifier), when a used name also resolves to a symbol from another
+     * scope (a wildcard import nested in a template shadowing the same name:
+     * raising this import to an explicit one would make that inner reference
+     * ambiguous), when nothing from it is used, or when the resulting importees
+     * — pre-existing selectors included — would reach `threshold` (beyond which
+     * a wildcard is preferable, and would anyway be re-introduced by
      * `coalesceToWildcardImportThreshold`). Renames, `given` imports and a
      * `given` wildcard are preserved; only the `*`/`_` is replaced.
      */
     def apply(importer: Importer): Importer = {
-      if (!importer.hasWildcard) importer
+      if (!importer.hasWildcard || hasUnresolvedReference) importer
       else
         exposedOwners(importer.ref.symbol) match {
           case None =>
