@@ -392,22 +392,45 @@ the inverse of
 >     `x.method`, `Sub.inherited`, `p.packageObjectMember` — does, so a wildcard
 >     is never expanded into a name that would shadow or clash with a
 >     higher-precedence explicit import.
+> -   A name bound by an enclosing definition rather than by the import is not
+>     imported either: a member (own or inherited) of an enclosing class, trait
+>     or object — an anonymous class and a self type included — or a member of
+>     an enclosing package that is defined in the same file. Such a binding
+>     takes precedence over any import, so an explicit import of the name would
+>     be unused (an error under `-Wunused:imports` with fatal warnings). A
+>     member of an enclosing package defined in another file has a lower
+>     precedence than an import and is imported.
 > -   Expansion includes members **inherited** from supertypes (and, for a
 >     package, from its package object and that object's supertypes), not just
 >     the directly declared ones. If any contributing supertype's definition is
 >     not available on the classpath, the scope cannot be modeled precisely and
 >     the wildcard is **left untouched** rather than risk dropping an inherited
 >     member.
+> -   A wildcard whose scope **declares an implicit** (or `given`) member — a
+>     syntax or instances import such as `scala.jdk.CollectionConverters._` or
+>     `cats.syntax.all._` — is never expanded, even if no implicit from it is
+>     used in the file. An implicit found through an import is invisible in
+>     source and may be summoned inside a macro expansion, which SemanticDB does
+>     not record; and the names of the implicit members of such an object are
+>     implementation details that differ across Scala versions (for instance
+>     `scala.jdk.CollectionConverters` is provided by scala-collection-compat on
+>     2.12, with different member names than on 2.13), which matters for
+>     cross-built sources.
 > -   A wildcard whose scope provides a member used through an **extension
 >     method** (Scala 3 `extension`, or a member call whose receiver type cannot
 >     be resolved) is also left untouched, since such a use cannot be turned into
->     a precise explicit import. (A Scala 2 implicit-class conversion is detected
->     through synthetics and handled like any other implicit.) A member selected
->     on a receiver whose type cannot be named nominally — a literal, or a call
->     result with a structural or otherwise unresolvable type — is treated the
->     same way and may conservatively block a wildcard exposing its owner; an
->     ordinary chained call (`a.b().c`) resolves the receiver type through the
->     called method's result type and does not inhibit expansion.
+>     a precise explicit import. A member selected on a receiver whose type
+>     cannot be named nominally — a literal, or a call result with a structural
+>     or otherwise unresolvable type — is treated the same way and may
+>     conservatively block a wildcard exposing its owner; an ordinary chained
+>     call (`a.b().c`) resolves the receiver type through the called method's
+>     result type and does not inhibit expansion.
+> -   A wildcard is left untouched when one of the names it would import is
+>     also, elsewhere in the file, resolved to a member of a **different
+>     scope** — typically through a wildcard import nested in a class or object
+>     that shadows the same name. An explicit import takes precedence over a
+>     wildcard, so raising the outer import would make that inner reference
+>     ambiguous.
 > -   A **relative** wildcard import is expanded only in combination with
 >     `expandRelative = true`, which first rewrites its prefix to a
 >     fully-qualified one; with `expandRelative = false` relative imports are
@@ -424,23 +447,26 @@ the inverse of
 > 
 > **Scala 3:** a `*` wildcard is expanded just like `_`. A `given` wildcard
 > is always preserved and never expanded, because `given`s are not brought
-> into scope by `*` (they require a `given` import). Moreover, Scalafix
+> into scope by `*` (they require a `given` import). Top-level definitions
+> of a package are imported by name like any other member. Moreover, Scalafix
 > cannot yet read symbol information from TASTy
 > ([#2049](https://github.com/scalacenter/scalafix/issues/2049)), so a
 > prefix compiled by Scala 3 and read from the classpath cannot be modeled:
 > in practice expansion is limited to prefixes defined in the same file and
 > to plain packages. A package is not expanded when the file provably uses
 > members of a package object that cannot be read, so an unreadable package
-> object never causes a used member to be dropped.
+> object never causes a used member to be dropped. Top-level implicits
+> declared in *other* files of a package cannot be detected: only the ones
+> actually used in the file prevent the expansion of a package wildcard.
 > 
 > Symbols referenced only inside a macro or `inline` expansion are not counted:
 > such expansions are typed with fully-resolved symbols and do not depend on the
 > caller's imports, so they neither require nor drive wildcard expansion.
 > 
-> Note: like `expandRelative`, the names introduced by this option are
-> synthetic and carry no symbol, so when `groupSeparately` includes
-> `ByNameImplicits`, an expanded implicit is not moved into the separate
-> implicit-import group.
+> **Cross-building:** the rewrite of a file is derived from the SemanticDB of
+> the Scala version the rule runs with. When the same sources are compiled for
+> several Scala versions, run the rule for one version at a time and check that
+> the others still compile, rather than running it concurrently for all of them.
 
 ### Value type
 

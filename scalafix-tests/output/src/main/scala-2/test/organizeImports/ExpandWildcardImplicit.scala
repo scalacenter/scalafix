@@ -1,6 +1,6 @@
 package test.organizeImports
 
-import test.organizeImports.Implicits.a.intImplicit
+import test.organizeImports.Implicits.a._
 
 object ExpandWildcardImplicit {
   def needsInt(implicit i: Int): Int = i

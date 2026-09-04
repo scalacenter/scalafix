@@ -1,6 +1,6 @@
 package test.organizeImports
 
-import test.organizeImports.Implicits.a.intImplicit
+import test.organizeImports.Implicits.a._
 import test.organizeImports.MergeImports.Wildcard1.a
 
 object ExpandWildcardImplicitSeparate {

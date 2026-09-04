@@ -6,3 +6,5 @@ object Cherry
 
 trait Alpha
 given alpha: Alpha = ???
+def topLevelDef: Int = 1
+val topLevelVal: Int = 2

@@ -15,4 +15,5 @@ object LocalOnly
 
 object ExpandWildcardSamePackage {
   val x = SharedMember
+  val y = LocalOnly
 }

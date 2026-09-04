@@ -1172,44 +1172,89 @@ object OrganizeImports {
         "java/lang/Object#"
       )
 
-    // Initialized before `usedByOwner`, whose document traversal already hits
-    // [[exposedOwners]] through [[isMemberOfType]].
-    private val exposedOwnersCache =
-      mutable.HashMap.empty[Symbol, Option[Set[Symbol]]]
+    // Caches, initialized before the usage model below, whose document
+    // traversal already hits them through [[isMemberOfType]] and
+    // [[isBoundByEnclosingScope]].
+    private val ownersCache =
+      mutable.HashMap.empty[Symbol, (Set[Symbol], Boolean)]
+    private val templateOwnersCache =
+      mutable.HashMap.empty[Template, Set[Symbol]]
 
     /**
-     * The wildcard-import dependencies of the document: a map from owner to the
-     * symbols used *through a wildcard* (names used unqualified, and
-     * `implicit`/`given` members resolved through synthetics), plus a set of
-     * owners whose membership could not be modeled precisely.
+     * The global symbols defined in this compilation unit, in both the term and
+     * the type namespace (a `case class` defines its companion without a tree
+     * node of its own). Used by [[isBoundByEnclosingScope]].
+     */
+    private val definedHere: Set[Symbol] =
+      doc.tree
+        .collect { case member: Member => member.name.symbol }
+        .iterator
+        .filter(_.isGlobal)
+        .flatMap { symbol =>
+          val value = symbol.value
+          if (value.endsWith("#"))
+            symbol :: Symbol(value.dropRight(1) + ".") :: Nil
+          else if (value.endsWith("."))
+            symbol :: Symbol(value.dropRight(1) + "#") :: Nil
+          else symbol :: Nil
+        }
+        .toSet
+
+    /**
+     * The wildcard-import dependencies of the document:
+     *   - `usedByOwner`: a map from owner to the symbols used *through a
+     *     wildcard* (names used unqualified, and `implicit`/`given` members
+     *     resolved through synthetics);
+     *   - `unmodeledOwners`: the owners whose membership could not be modeled
+     *     precisely;
+     *   - `usedOwnersByName`: the owners of the used symbols, by importable
+     *     name — the same name resolving to two owners is a shadowing between
+     *     scopes that an expansion could turn into an ambiguity (see
+     *     [[apply]]);
+     *   - `implicitOwners`: the owners of the implicits used through
+     *     synthetics.
      *
      * A fully-qualified reference (`p.A`) names its owner explicitly and is
-     * excluded; because each reference resolves to the symbol the compiler
-     * actually selected, a name covered by a higher-precedence explicit import
-     * is attributed to that import, not to a competing wildcard. Selected
-     * members that are not ordinary members of their qualifier's type —
-     * extension methods, or unresolvable qualifiers — populate the second set
-     * (see [[collectReference]]). Used by [[apply]].
+     * excluded, as is a reference bound by an enclosing definition (see
+     * [[isBoundByEnclosingScope]]); because each reference resolves to the
+     * symbol the compiler actually selected, a name covered by a
+     * higher-precedence explicit import is attributed to that import, not to a
+     * competing wildcard. Selected members that are not ordinary members of
+     * their qualifier's type — extension methods, or unresolvable qualifiers —
+     * populate `unmodeledOwners` (see [[collectReference]]). Owners are
+     * normalized by [[normalizeOwner]].
      */
-    private val (usedByOwner, unmodeledOwners) = {
+    private val (
+      usedByOwner,
+      unmodeledOwners,
+      usedOwnersByName,
+      implicitOwners
+    ) = {
       val used = mutable.LinkedHashSet.empty[Symbol]
       val unmodeled = mutable.HashSet.empty[Symbol]
+      val implicits = mutable.HashSet.empty[Symbol]
       doc.tree.traverse {
         case name: Term.Name => collectReference(name, used, unmodeled)
         case name: Type.Name => collectReference(name, used, unmodeled)
       }
-      doc.synthetics.foreach(collectImplicitSymbols(_, used))
-      val byOwner = used.iterator
-        .filter(_.isGlobal)
-        .toList
-        .groupBy(_.owner)
+      doc.synthetics.foreach(collectImplicitSymbols(_, used, implicits))
+      val globals = used.iterator.filter(_.isGlobal).toList
+      val byOwner = globals
+        .groupBy(symbol => normalizeOwner(symbol.owner))
         .map { case (owner, symbols) => owner -> symbols.toSet }
-      (byOwner, unmodeled.toSet)
+      val byName = globals
+        .flatMap(symbol =>
+          importableName(symbol).map(_ -> normalizeOwner(symbol.owner))
+        )
+        .groupBy(_._1)
+        .map { case (name, owners) => name -> owners.map(_._2).toSet }
+      (byOwner, unmodeled.toSet, byName, implicits.toSet)
     }
 
     /**
      * Adds the symbol `name` refers to when the reference depends on a wildcard
-     * import. Unqualified names and the head of a selection always do. A
+     * import. Unqualified names and the head of a selection do, unless they are
+     * bound by an enclosing definition (see [[isBoundByEnclosingScope]]). A
      * selected member `qualifier.member` does *not* when it is reached directly
      * through its owner (`p.A` — a fully-qualified reference), but it does when
      * the qualifier is unrelated to the owner: an extension method or other
@@ -1234,8 +1279,84 @@ object OrganizeImports {
           classifySelectedMember(select.qual, name.symbol, unmodeled)
         case Some(project: Type.Project) if project.name eq name => ()
         case Some(member: Member) if member.name eq name => ()
-        case _ => used += name.symbol
+        case _ =>
+          val symbol = name.symbol
+          if (symbol.isGlobal && !isBoundByEnclosingScope(name, symbol))
+            used += symbol
       }
+
+    /**
+     * Whether the reference to `symbol` at `name` is bound by an enclosing
+     * definition rather than by an import: an own or inherited member of an
+     * enclosing template (members of its self type included), or a member of an
+     * enclosing package clause that is defined in this compilation unit. Such a
+     * binding takes precedence over any import, so the reference neither needs
+     * the wildcard nor would use an explicit import replacing it — which the
+     * compiler would then report as unused. A member of an enclosing package
+     * clause defined in *another* compilation unit has lower precedence than an
+     * import and does depend on the wildcard.
+     */
+    private def isBoundByEnclosingScope(name: Name, symbol: Symbol): Boolean = {
+      val owner = normalizeOwner(symbol.owner)
+      @tailrec def loop(tree: Option[Tree]): Boolean = tree match {
+        case None => false
+        case Some(template: Template) =>
+          templateOwners(template).contains(owner) || loop(template.parent)
+        case Some(pkg: Pkg) =>
+          (definedHere(symbol) && packageOwners(pkg.symbol).contains(owner)) ||
+          loop(pkg.parent)
+        // `package object p` is nested in package `p`; its template is handled
+        // by the `Template` case above.
+        case Some(pkg: Pkg.Object) =>
+          (definedHere(symbol) &&
+            packageOwners(pkg.symbol.owner).contains(owner)) ||
+          loop(pkg.parent)
+        case Some(other) => loop(other.parent)
+      }
+      loop(name.parent)
+    }
+
+    /**
+     * The owners whose members are in scope inside `template` by definition:
+     * the defined class/object (if any), the parents it extends and the
+     * declared self type, each with all of its resolvable ancestors. Memoized
+     * per template.
+     */
+    private def templateOwners(template: Template): Set[Symbol] =
+      templateOwnersCache.getOrElseUpdate(
+        template, {
+          val definition = template.parent.collect { case m: Member =>
+            m.symbol
+          }
+          val parents = template.inits.map(_.symbol)
+          val selfTypes =
+            template.body.selfOpt.flatMap(_.decltpe).toList.flatMap(typeSymbols)
+          (definition.toList ++ parents ++ selfTypes).iterator
+            .flatMap(walkOwners(_)._1)
+            .toSet
+        }
+      )
+
+    /**
+     * The owners whose members a package clause `package p` brings into scope:
+     * the package itself and, through its package object, that object's
+     * ancestors.
+     */
+    private def packageOwners(pkg: Symbol): Set[Symbol] = walkOwners(pkg)._1
+
+    /** The nominal symbols composing a (possibly compound) type. */
+    private def typeSymbols(tpe: Type): List[Symbol] = tpe match {
+      case t: Type.With => typeSymbols(t.lhs) ++ typeSymbols(t.rhs)
+      case t: Type.ApplyInfix if t.op.value == "&" =>
+        typeSymbols(t.lhs) ++ typeSymbols(t.rhs)
+      case t: Type.Refine => t.tpe.toList.flatMap(typeSymbols)
+      case t: Type.Annotate => typeSymbols(t.tpe)
+      case t: Type.Apply => typeSymbols(t.tpe)
+      case t: Type.Name => t.symbol :: Nil
+      case t: Type.Select => t.symbol :: Nil
+      case t: Type.Project => t.symbol :: Nil
+      case _ => Nil
+    }
 
     /**
      * A selected member that is an ordinary (possibly inherited) member of the
@@ -1251,7 +1372,7 @@ object OrganizeImports {
         unmodeled: mutable.Set[Symbol]
     ): Unit =
       if (member.isGlobal && !isMemberOfType(qualifier.symbol, member))
-        unmodeled += member.owner
+        unmodeled += normalizeOwner(member.owner)
 
     /**
      * Whether `member` is an ordinary member of `qualifier`'s type, inherited
@@ -1262,55 +1383,75 @@ object OrganizeImports {
     private def isMemberOfType(qualifier: Symbol, member: Symbol): Boolean =
       typeSymbolOf(qualifier)
         .flatMap(exposedOwners)
-        .exists(_.contains(member.owner))
+        .exists(_.contains(normalizeOwner(member.owner)))
 
     /**
      * Collects, from a synthetic tree, only the symbols of `implicit`/`given`
-     * members it references. Those are what a wildcard can bring into scope
-     * *invisibly* (through implicit/given search), so they must drive
-     * expansion. Every other synthetic symbol — an inferred `.apply`, a
-     * fully-qualified reference participating in the synthetic, a
-     * macro-expansion internal — is either already visible in source (and thus
-     * handled by the unqualified scan) or does not require the import at all;
-     * collecting it could reintroduce a clash with a higher-precedence explicit
-     * import.
+     * members it references, and their owners. Those are what a wildcard can
+     * bring into scope *invisibly* (through implicit/given search); a wildcard
+     * exposing one of them is never expanded (see [[apply]]). Every other
+     * synthetic symbol — an inferred `.apply`, a fully-qualified reference
+     * participating in the synthetic, a macro-expansion internal — is either
+     * already visible in source (and thus handled by the unqualified scan) or
+     * does not require the import at all; collecting it could reintroduce a
+     * clash with a higher-precedence explicit import.
      */
     private def collectImplicitSymbols(
         tree: SemanticTree,
-        buf: mutable.Set[Symbol]
-    ): Unit = tree match {
-      case IdTree(info) =>
-        if (info.isImplicit || info.isGiven) buf += info.symbol
-      case SelectTree(qualifier, id) =>
-        collectImplicitSymbols(qualifier, buf)
-        if (id.info.isImplicit || id.info.isGiven) buf += id.symbol
-      case ApplyTree(function, arguments) =>
-        collectImplicitSymbols(function, buf)
-        arguments.foreach(collectImplicitSymbols(_, buf))
-      case TypeApplyTree(function, _) => collectImplicitSymbols(function, buf)
-      case FunctionTree(_, body) => collectImplicitSymbols(body, buf)
-      case MacroExpansionTree(beforeExpansion, _) =>
-        collectImplicitSymbols(beforeExpansion, buf)
-      // Original{,Sub}Tree wrap real source already covered by the source scan;
-      // LiteralTree / NoTree contribute no symbols.
-      case _ => ()
+        buf: mutable.Set[Symbol],
+        owners: mutable.Set[Symbol]
+    ): Unit = {
+      def add(info: SymbolInformation): Unit =
+        if (info.isImplicit || info.isGiven) {
+          buf += info.symbol
+          owners += normalizeOwner(info.symbol.owner)
+        }
+      tree match {
+        case IdTree(info) => add(info)
+        case SelectTree(qualifier, id) =>
+          collectImplicitSymbols(qualifier, buf, owners)
+          add(id.info)
+        case ApplyTree(function, arguments) =>
+          collectImplicitSymbols(function, buf, owners)
+          arguments.foreach(collectImplicitSymbols(_, buf, owners))
+        case TypeApplyTree(function, _) =>
+          collectImplicitSymbols(function, buf, owners)
+        case FunctionTree(_, body) => collectImplicitSymbols(body, buf, owners)
+        case MacroExpansionTree(beforeExpansion, _) =>
+          collectImplicitSymbols(beforeExpansion, buf, owners)
+        // Original{,Sub}Tree wrap real source already covered by the source
+        // scan; LiteralTree / NoTree contribute no symbols.
+        case _ => ()
+      }
+    }
+
+    /**
+     * Scala 3 top-level definitions of a package `p` declared in `F.scala` are
+     * owned by a synthetic `p/F$package.` object, which `import p.*` exposes
+     * exactly like the package itself; such an owner is folded into its package
+     * so that top-level members are neither dropped from an expansion nor
+     * mistaken for members brought into scope from elsewhere.
+     */
+    private def normalizeOwner(owner: Symbol): Symbol = {
+      val parent = owner.owner
+      if (owner.value.endsWith("$package.") && parent.value.endsWith("/"))
+        parent
+      else owner
     }
 
     /**
      * The owner symbols whose members `import prefix._` brings into scope: the
      * prefix itself plus all of its resolvable ancestors (universal supertypes
-     * excluded, since their members need no import). For a package this also
-     * walks its package object, whose members — including inherited ones — are
-     * visible through the package wildcard.
-     *
-     * Returns `None` when the scope cannot be modeled precisely — an ancestor
-     * whose definition is not on the classpath — so that [[apply]] can leave
-     * the wildcard untouched rather than risk dropping a member declared in
-     * that unmodeled ancestor. Memoized per run: [[isMemberOfType]] and
-     * [[apply]] look up the same prefixes repeatedly.
+     * excluded, since their members need no import), with a flag telling
+     * whether the scope could be modeled precisely — `false` when an ancestor's
+     * definition is not on the classpath. For a package this also walks its
+     * package object, whose members — including inherited ones — are visible
+     * through the package wildcard. Memoized per run: the scope lookups of
+     * [[isMemberOfType]], [[isBoundByEnclosingScope]] and [[apply]] repeat the
+     * same prefixes.
      */
-    private def exposedOwners(prefix: Symbol): Option[Set[Symbol]] =
-      exposedOwnersCache.getOrElseUpdate(
+    private def walkOwners(prefix: Symbol): (Set[Symbol], Boolean) =
+      ownersCache.getOrElseUpdate(
         prefix, {
           val owners = mutable.LinkedHashSet.empty[Symbol]
           val visited = mutable.HashSet.empty[String]
@@ -1332,20 +1473,29 @@ object OrganizeImports {
               }
             }
           val value = prefix.value
-          if (value.endsWith("/")) {
-            // Package: direct members are owned by the package itself; further
-            // members may be declared (or inherited) by a package object, which
-            // we must walk.
-            owners += prefix
-            val packageObject = Symbol(value + "package.")
-            if (packageObject.infoNoThrow.isEmpty)
-              Some(owners.toSet) // no package object
-            else if (walk(packageObject)) Some(owners.toSet)
-            else None
-          } else if (walk(prefix)) Some(owners.toSet)
-          else None
+          val complete =
+            if (value.endsWith("/")) {
+              // Package: direct members are owned by the package itself;
+              // further members may be declared (or inherited) by a package
+              // object, which we must walk.
+              owners += prefix
+              val packageObject = Symbol(value + "package.")
+              packageObject.infoNoThrow.isEmpty || walk(packageObject)
+            } else walk(prefix)
+          (owners.toSet, complete)
         }
       )
+
+    /**
+     * The owners exposed by `import prefix._` (see [[walkOwners]]), or `None`
+     * when the scope cannot be modeled precisely, so that [[apply]] can leave
+     * the wildcard untouched rather than risk dropping a member declared in an
+     * unmodeled ancestor.
+     */
+    private def exposedOwners(prefix: Symbol): Option[Set[Symbol]] = {
+      val (owners, complete) = walkOwners(prefix)
+      if (complete) Some(owners) else None
+    }
 
     /**
      * The head nominal symbol of a type, discarding type arguments and
@@ -1377,6 +1527,34 @@ object OrganizeImports {
           case _ => None
         }
       }
+
+    /**
+     * Whether `owner` declares an `implicit` or `given` member, as far as it
+     * can be known: from its class signature, or — for a package, whose members
+     * cannot be enumerated — from the Scala 3 top-level definitions of this
+     * compilation unit. Top-level implicits declared in other files of a
+     * package cannot be seen at all; the ones actually used are still caught
+     * through synthetics (`implicitOwners`).
+     */
+    private def declaresImplicits(owner: Symbol): Boolean =
+      owner.infoNoThrow.exists(_.signature match {
+        case ClassSignature(_, _, _, declarations) =>
+          declarations.exists(d => d.isImplicit || d.isGiven)
+        case _ => false
+      }) || (owner.value.endsWith("/") && topLevelImplicitOwners(owner))
+
+    /**
+     * The packages whose Scala 3 top-level definitions in this compilation unit
+     * include an `implicit` or `given` member.
+     */
+    private lazy val topLevelImplicitOwners: Set[Symbol] =
+      doc.internal.textDocument.symbols.iterator
+        .map(info => Symbol(info.symbol))
+        .filter(symbol => symbol.isGlobal && !symbol.owner.value.endsWith("/"))
+        .filter(symbol => normalizeOwner(symbol.owner) != symbol.owner)
+        .filter(_.infoNoThrow.exists(info => info.isImplicit || info.isGiven))
+        .map(symbol => normalizeOwner(symbol.owner))
+        .toSet
 
     /**
      * The name under which a used member would appear in an expansion, or
@@ -1425,13 +1603,20 @@ object OrganizeImports {
      * when the prefix's scope cannot be modeled precisely (see
      * [[exposedOwners]] and [[hasUnreadablePackageObject]]), when the scope
      * exposes a member used through an unmodelable selection (an extension
-     * method — see `unmodeledOwners`), when a used name cannot be rendered as
-     * an explicit importee (a `$` identifier), when nothing from it is used, or
-     * when the resulting importees — pre-existing selectors included — would
-     * reach `threshold` (beyond which a wildcard is preferable, and would
-     * anyway be re-introduced by `coalesceToWildcardImportThreshold`). Renames,
-     * `given` imports and a `given` wildcard are preserved; only the `*`/`_` is
-     * replaced.
+     * method — see `unmodeledOwners`), when the scope provides implicits (see
+     * [[declaresImplicits]] and `implicitOwners`: an implicit found through an
+     * import is invisible in source — it may even be summoned inside a macro
+     * expansion — and the names of the implicit members of a syntax object are
+     * implementation details that vary across Scala versions), when a used name
+     * cannot be rendered as an explicit importee (a `$` identifier), when a
+     * used name also resolves to a symbol from another scope (a wildcard import
+     * nested in a template shadowing the same name: raising this import to an
+     * explicit one would make that inner reference ambiguous), when nothing
+     * from it is used, or when the resulting importees — pre-existing selectors
+     * included — would reach `threshold` (beyond which a wildcard is
+     * preferable, and would anyway be re-introduced by
+     * `coalesceToWildcardImportThreshold`). Renames, `given` imports and a
+     * `given` wildcard are preserved; only the `*`/`_` is replaced.
      */
     def apply(importer: Importer): Importer = {
       if (!importer.hasWildcard) importer
@@ -1444,6 +1629,10 @@ object OrganizeImports {
           case Some(owners)
               if hasUnreadablePackageObject(importer.ref.symbol, owners) =>
             importer // package object exists but can't be modeled -> leave as-is
+          case Some(owners)
+              if owners.exists(implicitOwners) ||
+                owners.exists(declaresImplicits) =>
+            importer // provides implicits -> leave as-is
           case Some(owners) =>
             val Importees(names, renames, _, givens, givenAll, _) =
               importer.importees
@@ -1464,6 +1653,14 @@ object OrganizeImports {
             // irreplaceable: dropping the name would break compilation.
             val unrenderable =
               candidates.exists(name => name.isEmpty || name.contains("$"))
+            // A name that elsewhere resolves to a symbol this scope does not
+            // expose is shadowed by another (nested) import scope; an
+            // explicit import of it here would make that reference ambiguous.
+            val shadowed = expanded.exists { name =>
+              usedOwnersByName
+                .getOrElse(name, Set.empty[Symbol])
+                .exists(owner => !owners.contains(owner))
+            }
             // The threshold bounds the size of the resulting importee list —
             // pre-existing selectors included — mirroring how
             // `coalesceToWildcardImportThreshold` counts importees, so an
@@ -1472,7 +1669,10 @@ object OrganizeImports {
             val resultingSize =
               names.length + renames.length + givens.length + givenAll.size +
                 expanded.length
-            if (unrenderable || expanded.isEmpty || resultingSize >= threshold)
+            if (
+              unrenderable || shadowed || expanded.isEmpty ||
+              resultingSize >= threshold
+            )
               importer
             else
               importer.copy(importees =
