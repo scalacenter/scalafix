@@ -779,57 +779,71 @@ class OrganizeImports(
 
         ps.foreach(_.begComment.foreach(appendBegComment))
         i.begComment.foreach(appendBegComment)
-        if (single != null) single.begComment.foreach(appendBegComment)
-        sb.append("import ").append(refSyntax(i.ref)).append('.')
-        if (single != null) {
-          val isCurly = single.isCurlyBraced
-          val useOuterSpace = isCurly && single
-            .originalPrototype()
-            .parent
-            .exists(_.hasSpaceInCurly)
-          if (isCurly) {
+        if (i.isUnchangedFromSource) {
+          // An already-organized wrapped import: re-emit its source text as is,
+          // leaving its layout to the formatter. Interior comments come along
+          // in the token stream; comments around the import are printed as
+          // usual, above and below this branch.
+          // Continuation lines are re-indented on insertion, like printed ones.
+          val srcIndent = " " * i.parent.fold(0)(_.pos.startColumn)
+          val srcLines = i.tokens.syntax.linesIterator
+          sb.append("import ").append(srcLines.next())
+          srcLines.foreach(l =>
+            sb.append('\n').append(l.stripPrefix(srcIndent))
+          )
+        } else {
+          if (single != null) single.begComment.foreach(appendBegComment)
+          sb.append("import ").append(refSyntax(i.ref)).append('.')
+          if (single != null) {
+            val isCurly = single.isCurlyBraced
+            val useOuterSpace = isCurly && single
+              .originalPrototype()
+              .parent
+              .exists(_.hasSpaceInCurly)
+            if (isCurly) {
+              sb.append('{')
+              if (useOuterSpace) sb.append(' ')
+            }
+            sb.append(importeeSyntax(single))
+            if (isCurly) {
+              if (useOuterSpace) sb.append(' ')
+              sb.append('}')
+            }
+            single.endComment.foreach(appendEndComment)
+          } else {
+            val lines = i.importees.iterator.map(_.pos.startLine).filter(_ >= 0)
+            val isMultiline = lines.hasNext && {
+              val line = lines.next()
+              lines.exists(_ != line)
+            }
+            val origImporters = i.importees
+              .flatMap(_.originalPrototype().parent)
+              .distinct
+            val useOuterSpace =
+              !isMultiline && origImporters.exists(_.hasSpaceInCurly)
+            // Preserve a trailing comma if the (single) source importer had one.
+            val trailingComma = isMultiline && (origImporters match {
+              case Seq(origImporter: Importer) => origImporter.hasTrailingComma
+              case _ => false
+            })
             sb.append('{')
-            if (useOuterSpace) sb.append(' ')
-          }
-          sb.append(importeeSyntax(single))
-          if (isCurly) {
-            if (useOuterSpace) sb.append(' ')
+            val sep = if (isMultiline) "\n  " else " "
+            if (isMultiline) sb.append(sep)
+            else if (useOuterSpace) sb.append(' ')
+            val sblen = sb.length
+            i.importees.foreach { i2 =>
+              if (sb.length > sblen) sb.append(',').append(sep)
+              val proto = i2.originalPrototype()
+              proto.begComment.foreach(appendBegComment)
+              sb.append(importeeSyntax(i2))
+              proto.endComment.foreach(appendEndComment)
+            }
+            if (isMultiline) {
+              if (trailingComma) sb.append(',')
+              sb.append('\n')
+            } else if (useOuterSpace) sb.append(' ')
             sb.append('}')
           }
-          single.endComment.foreach(appendEndComment)
-        } else {
-          val lines = i.importees.iterator.map(_.pos.startLine).filter(_ >= 0)
-          val isMultiline = lines.hasNext && {
-            val line = lines.next()
-            lines.exists(_ != line)
-          }
-          val origImporters = i.importees
-            .flatMap(_.originalPrototype().parent)
-            .distinct
-          val useOuterSpace =
-            !isMultiline && origImporters.exists(_.hasSpaceInCurly)
-          // Preserve a trailing comma if the (single) source importer had one.
-          val trailingComma = isMultiline && (origImporters match {
-            case Seq(origImporter: Importer) => origImporter.hasTrailingComma
-            case _ => false
-          })
-          sb.append('{')
-          val sep = if (isMultiline) "\n  " else " "
-          if (isMultiline) sb.append(sep)
-          else if (useOuterSpace) sb.append(' ')
-          val sblen = sb.length
-          i.importees.foreach { i2 =>
-            if (sb.length > sblen) sb.append(',').append(sep)
-            val proto = i2.originalPrototype()
-            proto.begComment.foreach(appendBegComment)
-            sb.append(importeeSyntax(i2))
-            proto.endComment.foreach(appendEndComment)
-          }
-          if (isMultiline) {
-            if (trailingComma) sb.append(',')
-            sb.append('\n')
-          } else if (useOuterSpace) sb.append(' ')
-          sb.append('}')
         }
         i.endComment.foreach(appendEndComment)
         ps.foreach(_.endComment.foreach(appendEndComment))
@@ -1286,6 +1300,40 @@ object OrganizeImports {
       val idx = tokens.skipWideIf(_.is[Token.HTrivia], tokens.length)
       tokens.getWideOpt(idx).exists(_.is[Token.Comma])
     }
+
+    def spansMultipleLines: Boolean =
+      importer.pos.startLine != importer.pos.endLine
+
+    /**
+     * Would pretty-printing under `dialect` rewrite `=>` to `as` or `_` to `*`?
+     */
+    def needsDialectRewrite(implicit dialect: Dialect): Boolean =
+      importer.importees.exists {
+        case i: Importee.Wildcard =>
+          i.tokens.exists(_.is[Token.Underscore]) ==
+            dialect.allowStarWildcardImport
+        case i @ (_: Importee.Rename | _: Importee.Unimport) =>
+          i.tokens.exists(_.is[Token.RightArrow]) ==
+            dialect.allowAsForImportRename
+        case _ => false
+      }
+
+    /**
+     * Checks whether this `Importer` can be re-emitted verbatim from its own
+     * source text, so its layout (indentation, alignment, trailing comma) is
+     * left to the formatter rather than re-flowed by this rule.
+     *
+     * The signal is position presence: a node the pipeline rewrote is a
+     * `copy()` and carries no position (same invariant `nameSyntax` relies on),
+     * so an `Importer` that still has its parsed `Position.Range` was not
+     * restructured -- same qualifier, same importees, same order. Only wrapped
+     * imports qualify: single-line ones are still normalized (`import a.{ B }`
+     * -> `import a.B`), and one needing a dialect migration is being rewritten.
+     */
+    def isUnchangedFromSource(implicit dialect: Dialect): Boolean =
+      importer.pos.isInstanceOf[Position.Range] &&
+        importer.spansMultipleLines &&
+        !importer.needsDialectRewrite
 
   }
 
