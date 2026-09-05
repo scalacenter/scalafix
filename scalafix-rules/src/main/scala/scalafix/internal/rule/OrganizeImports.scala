@@ -1213,6 +1213,13 @@ object OrganizeImports {
   )(implicit doc: SemanticDocument) {
 
     /**
+     * Names that an importee cannot spell without backticks, which the printer
+     * does not add: `*` and `_` read as a wildcard, `given` as a `given`
+     * selector.
+     */
+    private val unrenderableNames: Set[String] = Set("*", "_", "given")
+
+    /**
      * Universal supertypes whose members are always in scope without an import.
      */
     private val universalParents: Set[String] =
@@ -1772,10 +1779,14 @@ object OrganizeImports {
             val expanded = candidates.distinct.sorted
             // A used name expansion cannot faithfully render — one containing
             // `$`, where a legal source identifier (`a$b`) cannot be told
-            // apart from a compiler-generated name — makes the wildcard
-            // irreplaceable: dropping the name would break compilation.
-            val unrenderable =
-              candidates.exists(name => name.isEmpty || name.contains("$"))
+            // apart from a compiler-generated name, or one that reads as a
+            // wildcard or a `given` selector in an import — makes the
+            // wildcard irreplaceable: dropping the name would break
+            // compilation.
+            val unrenderable = candidates.exists(name =>
+              name.isEmpty || name.contains("$") ||
+                unrenderableNames(name)
+            )
             // A name that elsewhere resolves to a symbol this scope does not
             // expose is shadowed by another (nested) import scope; an
             // explicit import of it here would make that reference ambiguous.

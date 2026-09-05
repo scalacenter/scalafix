@@ -431,6 +431,10 @@ the inverse of
 >     that shadows the same name. An explicit import takes precedence over a
 >     wildcard, so raising the outer import would make that inner reference
 >     ambiguous.
+> -   A wildcard is left untouched when one of the names it would import
+>     cannot be spelled as an explicit importee: a name containing `$` (a
+>     legal identifier cannot be told apart from a compiler-generated name),
+>     or `*`, `_` and `given`, which read as a wildcard or a `given` selector.
 > -   A reference whose symbol SemanticDB does not record — on Scala 3, the
 >     class of a `new C(..)` or `extends C(..)` whose type arguments are
 >     inferred — is resolved by looking the class up on the classpath under
