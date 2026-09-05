@@ -387,7 +387,7 @@ class OrganizeImports(
     type SortFunc = (StringBuilder, Boolean, List[Importee]) => Unit
     def sortSyntax(f: SortFunc)(imp: Importer): String = {
       implicit val sb = new StringBuilder
-      sb.append(refSyntax(imp.ref)).append('.')
+      sb.append(treeSyntax(imp.ref)).append('.')
       f(sb, imp.isCurlyBraced, imp.importees)
       sb.toString()
     }
