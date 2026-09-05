@@ -75,6 +75,55 @@ class RuleDecoderSuite extends AnyFunSuite {
     assert(!class1.isAssignableFrom(class2))
   }
 
+  test("unchanged sources are compiled once per RuleDecoder.Settings") {
+    val tmp = Files.createTempFile("scalafix", "CachedRule.scala")
+    val customRule =
+      """package custom
+        |import scalafix.v1._
+        |class CachedRule extends SyntacticRule("CachedRule") {}
+      """.stripMargin
+    Files.write(tmp, customRule.getBytes)
+
+    val class1 =
+      decoder.read(Conf.Str(tmp.toUri.toString)).get.rules.head.getClass
+    val class2 =
+      decoder.read(Conf.Str(tmp.toUri.toString)).get.rules.head.getClass
+    assert(class1 == class2)
+  }
+
+  test("identical sources in distinct files are compiled separately") {
+    val customRule =
+      """package custom
+        |import scalafix.v1._
+        |class TwinRule extends SyntacticRule("TwinRule") {}
+      """.stripMargin
+    def loadCopy() = {
+      val tmp = Files.createTempFile("scalafix", "TwinRule.scala")
+      Files.write(tmp, customRule.getBytes)
+      decoder.read(Conf.Str(tmp.toUri.toString)).get.rules.head.getClass
+    }
+    assert(loadCopy() != loadCopy())
+  }
+
+  test("separate RuleDecoder.Settings compile and load sources independently") {
+    val tmp = Files.createTempFile("scalafix", "SessionRule.scala")
+    val customRule =
+      """package custom
+        |import scalafix.v1._
+        |class SessionRule extends SyntacticRule("SessionRule") {}
+      """.stripMargin
+    Files.write(tmp, customRule.getBytes)
+
+    def loadWithFreshSettings() = RuleDecoder
+      .decoder(RuleDecoder.Settings().withCwd(cwd))
+      .read(Conf.Str(tmp.toUri.toString))
+      .get
+      .rules
+      .head
+      .getClass
+    assert(loadWithFreshSettings() != loadWithFreshSettings())
+  }
+
   test("deprecation warnings do not prevent rule loading") {
     val tmp = Files.createTempFile("scalafix", "CustomRule.scala")
 

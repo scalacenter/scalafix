@@ -37,6 +37,7 @@ import scalafix.internal.diff.DiffDisable
 import scalafix.internal.interfaces.MainCallbackImpl
 import scalafix.internal.jgit.JGitDiff
 import scalafix.internal.reflect.ClasspathOps
+import scalafix.internal.reflect.ScalafixToolbox
 import scalafix.internal.symtab.SymbolTable
 import scalafix.v1.Configuration
 import scalafix.v1.RuleDecoder
@@ -163,6 +164,11 @@ case class Args(
       "Additional classpath for compiling and classloading custom rules, as a list of filesystem paths, separated by ':' on Unix or ';' on Windows."
     )
     toolClasspath: URLClassLoader = ClasspathOps.thisClassLoader,
+    @Hidden
+    @Description(
+      "Compiler and cache for rules from source, shared across runs of the same Scalafix instance"
+    )
+    toolbox: ScalafixToolbox = new ScalafixToolbox,
     @Description("The encoding to use for reading/writing files")
     charset: Charset = StandardCharsets.UTF_8,
     @Description("If set, throw exception in the end instead of System.exit")
@@ -246,6 +252,7 @@ case class Args(
       .withToolClasspath(toolClasspath)
       .withCwd(cwd)
       .withSyntactic(syntactic)
+      .withToolbox(toolbox)
   }
 
   def ruleDecoder(scalafixConfig: ScalafixConfig): ConfDecoder[Rules] = {
@@ -461,7 +468,8 @@ object Args extends TPrintImplicits {
     .toOption
     .getOrElse(scala2)
 
-  val default: Args = default(PathIO.workingDirectory, System.out)
+  // def, so that each Args owns a fresh toolbox unless one is injected
+  def default: Args = default(PathIO.workingDirectory, System.out)
   def default(cwd: AbsolutePath, out: PrintStream): Args = {
     val callback = MainCallbackImpl.fromScala(PrintStreamReporter(out))
     new Args(cwd = cwd, out = out, callback = callback)
@@ -502,6 +510,8 @@ object Args extends TPrintImplicits {
     ConfEncoder.StringEncoder.contramap(_.value)
   implicit val callbackDecoder: ConfDecoder[ScalafixMainCallback] =
     ConfDecoder.stringConfDecoder.map(_ => MainCallbackImpl.default)
+  implicit val toolboxDecoder: ConfDecoder[ScalafixToolbox] =
+    ConfDecoder.stringConfDecoder.map(_ => new ScalafixToolbox)
 
   implicit val confEncoder: ConfEncoder[Conf] =
     ConfEncoder.ConfEncoder
@@ -519,6 +529,8 @@ object Args extends TPrintImplicits {
     ConfEncoder.StringEncoder.contramap(_.toString)
   implicit val callbackEncoder: ConfEncoder[ScalafixMainCallback] =
     ConfEncoder.StringEncoder.contramap(_.toString)
+  implicit val toolboxEncoder: ConfEncoder[ScalafixToolbox] =
+    ConfEncoder.StringEncoder.contramap(_ => "<toolbox>")
   implicit val argsEncoder: ConfEncoder[Args] = generic.deriveEncoder
 
   implicit val argsSurface: Surface[Args] = generic.deriveSurface

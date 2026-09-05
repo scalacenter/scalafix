@@ -200,6 +200,60 @@ class ScalafixSuite extends AnyFunSuite {
     assert(maybeDiagnostic.get.message.startsWith(expectedScalaVersion))
   }
 
+  test(s"source rules are compiled once per Scalafix instance (#782)") {
+    val scalafixAPI = Scalafix.fetchAndClassloadInstance(
+      scalaVersion,
+      repositories
+    )
+
+    // the companion object initializer runs once per compilation, since each
+    // compilation result is loaded into a fresh classloader
+    val ruleSource =
+      tmpFile("CaptureCompilation", ".scala") {
+        """import scalafix.v1._
+          |object CaptureCompilation {
+          |  val id = java.util.UUID.randomUUID().toString
+          |}
+          |class CaptureCompilation extends SyntacticRule("CaptureCompilation") {
+          |  override def fix(implicit doc: SyntacticDocument): Patch =
+          |    Patch.lint(
+          |      Diagnostic(
+          |        "",
+          |        CaptureCompilation.id,
+          |        scala.meta.Position.None,
+          |        "",
+          |        scalafix.lint.LintSeverity.Error
+          |      )
+          |    )
+          |}""".stripMargin
+      }
+
+    def compilationId(api: Scalafix): String = {
+      var maybeDiagnostic: Option[ScalafixDiagnostic] = None
+      val scalafixMainCallback = new ScalafixMainCallback {
+        override def reportDiagnostic(diagnostic: ScalafixDiagnostic): Unit =
+          maybeDiagnostic = Some(diagnostic)
+      }
+      api.newArguments
+        .withRules(Seq(ruleSource.toUri.toString).asJava)
+        .withMainCallback(scalafixMainCallback)
+        // any target file would do to emit a diagnostic, so run the rule on itself
+        .withPaths(List(ruleSource).asJava)
+        .withWorkingDirectory(ruleSource.getParent)
+        .run()
+      maybeDiagnostic.get.message
+    }
+
+    // arguments created by one instance share compiled rules
+    val firstCompilation = compilationId(scalafixAPI)
+    assert(compilationId(scalafixAPI) == firstCompilation)
+
+    // separate instances compile independently
+    val separateAPI =
+      Scalafix.classloadInstance(scalafixAPI.getClass.getClassLoader)
+    assert(compilationId(separateAPI) != firstCompilation)
+  }
+
   test(s"fetch & load cli for $scalaVersion with external dependencies") {
     val scalafixAPI = Scalafix.fetchAndClassloadInstance(
       scalaVersion,
