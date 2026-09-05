@@ -33,6 +33,7 @@ import scalafix.v1.SemanticDocument
 import scalafix.v1.SemanticRule
 import scalafix.v1.SemanticTree
 import scalafix.v1.SemanticType
+import scalafix.v1.Signature
 import scalafix.v1.SingleType
 import scalafix.v1.SuperType
 import scalafix.v1.Symbol
@@ -1274,8 +1275,9 @@ object OrganizeImports {
     /**
      * Whether the document contains an unqualified reference whose symbol
      * SemanticDB does not record and that could not be recovered (see
-     * [[resolveByClassfile]]). Such a reference may depend on any wildcard, so
-     * [[apply]] then leaves every wildcard untouched.
+     * [[resolveByClassfile]]), or a synthetic whose symbols could not be
+     * resolved. Such a reference may depend on any wildcard, so [[apply]] then
+     * leaves every wildcard untouched.
      */
     private var hasUnresolvedReference: Boolean = false
 
@@ -1316,7 +1318,16 @@ object OrganizeImports {
         case name: Term.Name => collectReference(name, used, unmodeled)
         case name: Type.Name => collectReference(name, used, unmodeled)
       }
-      doc.synthetics.foreach(collectImplicitSymbols(_, used, implicits))
+      // Decoding a synthetic resolves its symbols on the classpath, which
+      // throws for a class file that cannot be read (see `infoNoThrow`); the
+      // implicits it may hide are then unknown, so fail closed.
+      val synthetics = doc.synthetics
+      while (synthetics.hasNext)
+        Try(synthetics.next()) match {
+          case scala.util.Success(tree) =>
+            collectImplicitSymbols(tree, used, implicits)
+          case scala.util.Failure(_) => hasUnresolvedReference = true
+        }
       val globals = used.iterator.filter(_.isGlobal).toList
       val byOwner = globals
         .groupBy(symbol => normalizeOwner(symbol.owner))
@@ -1583,10 +1594,11 @@ object OrganizeImports {
               self.infoNoThrow match {
                 case Some(info) =>
                   owners += self
-                  info.signature match {
-                    case ClassSignature(_, parents, _, _) =>
+                  signatureNoThrow(info) match {
+                    case Some(ClassSignature(_, parents, _, _)) =>
                       parents.forall(headSymbol(_).exists(walk))
-                    case _ => true
+                    case Some(_) => true
+                    case None => false // unreadable signature -> cannot model
                   }
                 case None =>
                   false // unresolvable ancestor -> cannot model precisely
@@ -1625,6 +1637,14 @@ object OrganizeImports {
     }
 
     /**
+     * A symbol's signature, or `None` when converting it fails: its
+     * declarations are resolved on the classpath, which throws for a class file
+     * that cannot be read (see `infoNoThrow`).
+     */
+    private def signatureNoThrow(info: SymbolInformation): Option[Signature] =
+      Try(info.signature).toOption
+
+    /**
      * The head nominal symbol of a type, discarding type arguments and
      * unwrapping annotations. Returns `None` for non-nominal types (structural,
      * union, …), which callers treat as "cannot resolve".
@@ -1645,7 +1665,7 @@ object OrganizeImports {
      */
     private def typeSymbolOf(symbol: Symbol): Option[Symbol] =
       symbol.infoNoThrow.flatMap { info =>
-        info.signature match {
+        signatureNoThrow(info).flatMap {
           case ValueSignature(tpe) => headSymbol(tpe)
           case MethodSignature(_, _, returnType) => headSymbol(returnType)
           case TypeSignature(_, _, upperBound) => headSymbol(upperBound)
@@ -1664,11 +1684,14 @@ object OrganizeImports {
      * through synthetics (`implicitOwners`).
      */
     private def declaresImplicits(owner: Symbol): Boolean =
-      owner.infoNoThrow.exists(_.signature match {
-        case ClassSignature(_, _, _, declarations) =>
-          declarations.exists(d => d.isImplicit || d.isGiven)
-        case _ => false
-      }) || (owner.value.endsWith("/") && topLevelImplicitOwners(owner))
+      owner.infoNoThrow.exists(info =>
+        signatureNoThrow(info) match {
+          case Some(ClassSignature(_, _, _, declarations)) =>
+            declarations.exists(d => d.isImplicit || d.isGiven)
+          case Some(_) => false
+          case None => true // unreadable declarations -> assume implicits
+        }
+      ) || (owner.value.endsWith("/") && topLevelImplicitOwners(owner))
 
     /**
      * The packages whose Scala 3 top-level definitions in this compilation unit

@@ -438,8 +438,10 @@ the inverse of
 > -   A reference whose symbol SemanticDB does not record — on Scala 3, the
 >     class of a `new C(..)` or `extends C(..)` whose type arguments are
 >     inferred — is resolved by looking the class up on the classpath under
->     each wildcard prefix. If a reference cannot be resolved at all, no
->     wildcard of the file is expanded, since any of them could be its source.
+>     each wildcard prefix. If a reference cannot be resolved at all — or if
+>     symbol information on the classpath cannot be read, which can happen for
+>     a class file compiled against a library that is missing — no wildcard of
+>     the file is expanded, since any of them could be its source.
 > -   A **relative** wildcard import is expanded only in combination with
 >     `expandRelative = true`, which first rewrites its prefix to a
 >     fully-qualified one; with `expandRelative = false` relative imports are
