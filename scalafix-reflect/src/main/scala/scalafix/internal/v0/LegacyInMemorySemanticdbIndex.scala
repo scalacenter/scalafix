@@ -5,12 +5,12 @@ import scala.{meta => m}
 import scala.meta._
 import scala.meta.internal.inputs.XtensionInput
 import scala.meta.internal.io._
-import scala.meta.internal.symtab.SymbolTable
 import scala.meta.internal.{semanticdb => s}
 
 import scalafix.internal.config.ScalaVersion
 import scalafix.internal.patch.CrashingSemanticdbIndex
 import scalafix.internal.reflect.ClasspathOps
+import scalafix.internal.symtab.SymbolTable
 import scalafix.internal.v1._
 import scalafix.util.SemanticdbIndex
 import scalafix.v0

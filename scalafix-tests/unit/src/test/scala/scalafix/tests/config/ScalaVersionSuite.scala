@@ -51,4 +51,26 @@ class ScalaVersionSuite extends munit.FunSuite {
     assert(scala3.isFailure)
   }
 
+  test("unusedDiagnosticsInSemanticdb") {
+    val cases = List(
+      "3.10.0-RC1" -> true,
+      "3.3.4" -> true,
+      "3.3.4-RC1" -> true,
+      "2.13.18" -> true,
+      "3.3.3" -> false,
+      "3.1.3" -> false,
+      "3.0.0" -> false,
+      "3.2.2" -> false,
+      "3.6.0-RC1-bin-20241008-3408ed7-NIGHTLY" -> true,
+      "not-a-version" -> true // unparseable stays permissive
+    )
+    cases.foreach { case (version, expected) =>
+      assertEquals(
+        ScalaVersion.unusedDiagnosticsInSemanticdb(version),
+        expected,
+        clue = version
+      )
+    }
+  }
+
 }

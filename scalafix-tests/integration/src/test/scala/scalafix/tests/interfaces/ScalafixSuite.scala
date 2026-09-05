@@ -50,6 +50,7 @@ class ScalafixSuite extends AnyFunSuite {
     assert(api.scala36() == Versions.scala36)
     assert(api.scala37() == Versions.scala37)
     assert(api.scala38() == Versions.scala38)
+    assert(api.scala39() == Versions.scala39)
     assert(api.scala3LTS() == Versions.scala3LTS)
     assert(api.scala3Next() == Versions.scala3Next)
     assert(
@@ -102,48 +103,36 @@ class ScalafixSuite extends AnyFunSuite {
     assert(scalafixAPI.scalaVersion() == Versions.scala213)
   }
 
-  test("classload Scala 3 LTS with full pre-LTS version") {
+  test("classload Scala 3.3 with full pre-3.3 version") {
     val scalafixAPI = Scalafix.fetchAndClassloadInstance("3.0.0", repositories)
-    assert(scalafixAPI.scalaVersion() == Versions.scala3LTS)
+    assert(scalafixAPI.scalaVersion() == Versions.scala33)
   }
 
-  test("classload Scala 3 LTS with major.minor pre-LTS version") {
+  test("classload Scala 3.3 with major.minor pre-3.3 version") {
     val scalafixAPI = Scalafix.fetchAndClassloadInstance("3.2", repositories)
-    assert(scalafixAPI.scalaVersion() == Versions.scala3LTS)
+    assert(scalafixAPI.scalaVersion() == Versions.scala33)
   }
 
-  test("classload Scala 3 LTS with full LTS version") {
+  test("classload Scala 3.3 with full version") {
     val scalafixAPI = Scalafix.fetchAndClassloadInstance("3.3.4", repositories)
-    assert(scalafixAPI.scalaVersion() == Versions.scala3LTS)
+    assert(scalafixAPI.scalaVersion() == Versions.scala33)
   }
 
-  test("classload Scala 3 LTS with major.minor LTS version") {
+  test("classload Scala 3.3 with major.minor version") {
     val scalafixAPI = Scalafix.fetchAndClassloadInstance("3.3", repositories)
-    assert(scalafixAPI.scalaVersion() == Versions.scala3LTS)
+    assert(scalafixAPI.scalaVersion() == Versions.scala33)
   }
 
-  test("classload Scala 3.5 with full version") {
-    if (jdk >= 23) cancel("Scala 3.5 is not supported on JDK23+")
-    val scalafixAPI = Scalafix.fetchAndClassloadInstance("3.5.2", repositories)
-    assert(scalafixAPI.scalaVersion() == Versions.scala35)
-  }
-
-  test("classload Scala 3.5 with major.minor version") {
-    if (jdk >= 23) cancel("Scala 3.5 is not supported on JDK23+")
-    val scalafixAPI = Scalafix.fetchAndClassloadInstance("3.5", repositories)
-    assert(scalafixAPI.scalaVersion() == Versions.scala35)
-  }
-
-  test("classload Scala 3 Next with full version") {
+  test("classload Scala 3.9 with full version") {
     if (jdk < 17) cancel("Scala 3.8+ requires JDK17+")
-    val scalafixAPI = Scalafix.fetchAndClassloadInstance("3.8.0", repositories)
-    assert(scalafixAPI.scalaVersion() == Versions.scala3Next)
+    val scalafixAPI = Scalafix.fetchAndClassloadInstance("3.9.0", repositories)
+    assert(scalafixAPI.scalaVersion() == Versions.scala39)
   }
 
-  test("classload Scala 3 Next with major.minor version") {
+  test("classload Scala 3.9 with major.minor version") {
     if (jdk < 17) cancel("Scala 3.8+ requires JDK17+")
-    val scalafixAPI = Scalafix.fetchAndClassloadInstance("3.8", repositories)
-    assert(scalafixAPI.scalaVersion() == Versions.scala3Next)
+    val scalafixAPI = Scalafix.fetchAndClassloadInstance("3.9", repositories)
+    assert(scalafixAPI.scalaVersion() == Versions.scala39)
   }
 
   test("classload Scala 3 Next with major version") {
@@ -209,6 +198,60 @@ class ScalafixSuite extends AnyFunSuite {
       case scala2 => scala2
     }
     assert(maybeDiagnostic.get.message.startsWith(expectedScalaVersion))
+  }
+
+  test(s"source rules are compiled once per Scalafix instance (#782)") {
+    val scalafixAPI = Scalafix.fetchAndClassloadInstance(
+      scalaVersion,
+      repositories
+    )
+
+    // the companion object initializer runs once per compilation, since each
+    // compilation result is loaded into a fresh classloader
+    val ruleSource =
+      tmpFile("CaptureCompilation", ".scala") {
+        """import scalafix.v1._
+          |object CaptureCompilation {
+          |  val id = java.util.UUID.randomUUID().toString
+          |}
+          |class CaptureCompilation extends SyntacticRule("CaptureCompilation") {
+          |  override def fix(implicit doc: SyntacticDocument): Patch =
+          |    Patch.lint(
+          |      Diagnostic(
+          |        "",
+          |        CaptureCompilation.id,
+          |        scala.meta.Position.None,
+          |        "",
+          |        scalafix.lint.LintSeverity.Error
+          |      )
+          |    )
+          |}""".stripMargin
+      }
+
+    def compilationId(api: Scalafix): String = {
+      var maybeDiagnostic: Option[ScalafixDiagnostic] = None
+      val scalafixMainCallback = new ScalafixMainCallback {
+        override def reportDiagnostic(diagnostic: ScalafixDiagnostic): Unit =
+          maybeDiagnostic = Some(diagnostic)
+      }
+      api.newArguments
+        .withRules(Seq(ruleSource.toUri.toString).asJava)
+        .withMainCallback(scalafixMainCallback)
+        // any target file would do to emit a diagnostic, so run the rule on itself
+        .withPaths(List(ruleSource).asJava)
+        .withWorkingDirectory(ruleSource.getParent)
+        .run()
+      maybeDiagnostic.get.message
+    }
+
+    // arguments created by one instance share compiled rules
+    val firstCompilation = compilationId(scalafixAPI)
+    assert(compilationId(scalafixAPI) == firstCompilation)
+
+    // separate instances compile independently
+    val separateAPI =
+      Scalafix.classloadInstance(scalafixAPI.getClass.getClassLoader)
+    assert(compilationId(separateAPI) != firstCompilation)
   }
 
   test(s"fetch & load cli for $scalaVersion with external dependencies") {

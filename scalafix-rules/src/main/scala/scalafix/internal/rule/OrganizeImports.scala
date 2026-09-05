@@ -720,6 +720,15 @@ class OrganizeImports(
         Seq(others, wildcards) map (_.sortBy(treeSyntax)) reduce (_ ++ _)
       case SymbolsFirst =>
         Seq(others, wildcards) map sortImporteesSymbolsFirst reduce (_ ++ _)
+      case IntelliJ =>
+        val Importees(names, renames, unimports, givens, givenAll, wildcard) =
+          importer.importees
+        names.sortBy(treeSyntax) ++
+          renames.sortBy(treeSyntax) ++
+          unimports.sortBy(treeSyntax) ++
+          wildcard ++
+          givens.sortBy(treeSyntax) ++
+          givenAll
       case Keep =>
         importer.importees
     }
@@ -842,7 +851,7 @@ class OrganizeImports(
         ps.foreach(_.begComment.foreach(appendBegComment))
         i.begComment.foreach(appendBegComment)
         if (single != null) single.begComment.foreach(appendBegComment)
-        sb.append("import ").append(treeSyntax(i.ref)).append('.')
+        sb.append("import ").append(refSyntax(i.ref)).append('.')
         if (single != null) {
           val isCurly = single.isCurlyBraced
           val useOuterSpace = isCurly && single
@@ -865,10 +874,16 @@ class OrganizeImports(
             val line = lines.next()
             lines.exists(_ != line)
           }
-          val useOuterSpace = !isMultiline && i.importees
+          val origImporters = i.importees
             .flatMap(_.originalPrototype().parent)
             .distinct
-            .exists(_.hasSpaceInCurly)
+          val useOuterSpace =
+            !isMultiline && origImporters.exists(_.hasSpaceInCurly)
+          // Preserve a trailing comma if the (single) source importer had one.
+          val trailingComma = isMultiline && (origImporters match {
+            case Seq(origImporter: Importer) => origImporter.hasTrailingComma
+            case _ => false
+          })
           sb.append('{')
           val sep = if (isMultiline) "\n  " else " "
           if (isMultiline) sb.append(sep)
@@ -881,8 +896,10 @@ class OrganizeImports(
             sb.append(treeSyntax(i2))
             proto.endComment.foreach(appendEndComment)
           }
-          if (isMultiline) sb.append('\n')
-          else if (useOuterSpace) sb.append(' ')
+          if (isMultiline) {
+            if (trailingComma) sb.append(',')
+            sb.append('\n')
+          } else if (useOuterSpace) sb.append(' ')
           sb.append('}')
         }
         i.endComment.foreach(appendEndComment)
@@ -920,8 +937,7 @@ object OrganizeImports {
       classpath: List[AbsolutePath]
   ): Configured[Rule] = {
     val hasCompilerSupport =
-      Seq("3.0", "3.1", "3.2", "3.3.0", "3.3.1", "3.3.2", "3.3.3")
-        .forall(v => !scalaVersion.startsWith(v))
+      ScalaVersion.unusedDiagnosticsInSemanticdb(scalaVersion)
 
     val hasWarnUnused = hasCompilerSupport && {
       val warnUnusedPrefix = Set("-Wunused", "-Ywarn-unused")
@@ -1857,6 +1873,19 @@ object OrganizeImports {
   }
 
   @inline
+  private def refSyntax(ref: Term)(implicit dialect: Dialect): String =
+    ref match {
+      case Term.Select(qual, name) if !name.pos.isEmpty =>
+        refSyntax(qual) + "." + name.pos.text
+      case _ if !ref.pos.isEmpty =>
+        ref.pos.text
+      case Term.Select(qual, name) =>
+        refSyntax(qual) + "." + treeSyntax(name)
+      case _ =>
+        treeSyntax(ref)
+    }
+
+  @inline
   private def treeSyntax(tree: Tree)(implicit dialect: Dialect): String =
     tree.reprint()
 
@@ -1919,6 +1948,13 @@ object OrganizeImports {
         tokens.getWideOpt(idx).exists(_.is[Token.RightBrace])
       }
       lspace || rspace
+    }
+
+    def hasTrailingComma: Boolean = {
+      val tokens = importer.importees.last.tokens
+      // Skip trivia between the last importee and the next token.
+      val idx = tokens.skipWideIf(_.is[Token.HTrivia], tokens.length)
+      tokens.getWideOpt(idx).exists(_.is[Token.Comma])
     }
 
   }

@@ -6,6 +6,7 @@ import scala.meta._
 import scala.meta.tokens.Token
 
 import metaconfig.Configured
+import scalafix.internal.patch.EscapeHatch
 import scalafix.v0.LintCategory
 import scalafix.v1._
 
@@ -24,6 +25,21 @@ final class DisableSyntax(config: DisableSyntaxConfig)
       .map(new DisableSyntax(_))
 
   private def checkRegex(doc: SyntacticDocument): Seq[Diagnostic] = {
+    // matches starting inside suppression anchors are never reported, as an
+    // anchor may name the very pattern it suppresses
+    // (https://github.com/scalacenter/scalafix/issues/507); keying on the
+    // start offset mirrors EscapeHatch
+    lazy val anchors: Seq[(Int, Int)] =
+      doc.tree.tokens.collect {
+        case token @ Token.Comment(EscapeHatch.Anchor(_)) =>
+          (token.start, token.end)
+      }
+
+    def withinAnchor(position: Position): Boolean =
+      anchors.exists { case (start, end) =>
+        start <= position.start && position.start < end
+      }
+
     def pos(matcher: Matcher, groupIndex: Int): Position =
       if (matcher.group(groupIndex) == null)
         Position.Range(doc.input, matcher.start, matcher.end)
@@ -60,14 +76,17 @@ final class DisableSyntax(config: DisableSyntaxConfig)
           )
       }
 
+      val id = regex.id.getOrElse(pattern)
       val message = regex.message.getOrElse(s"$pattern is disabled")
       while (matcher.find()) {
-        regexDiagnostics +=
-          Diagnostic(
-            id = regex.id.getOrElse(pattern),
-            message = messageSubstitution(matcher, message),
-            position = pos(matcher, groupIndex)
-          )
+        val position = pos(matcher, groupIndex)
+        if (!withinAnchor(position))
+          regexDiagnostics +=
+            Diagnostic(
+              id = id,
+              message = messageSubstitution(matcher, message),
+              position = position
+            )
       }
     }
     regexDiagnostics.result()

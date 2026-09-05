@@ -1,9 +1,9 @@
 package scalafix.testkit
 
 import scala.meta._
-import scala.meta.internal.symtab.SymbolTable
 
 import scalafix.internal.diff.DiffDisable
+import scalafix.internal.symtab.SymbolTable
 import scalafix.internal.v1.Args
 import scalafix.internal.v1.LazyValue
 import scalafix.internal.v1.Rules

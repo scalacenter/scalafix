@@ -157,6 +157,17 @@ object ScalaVersion {
 
   private val yyyyMMdd = DateTimeFormatter.ofPattern("yyyyMMdd")
 
+  implicit val ordering: Ordering[ScalaVersion] =
+    Ordering.by(v =>
+      (v.major.value, v.minor.getOrElse(0), v.patch.getOrElse(0))
+    )
+
+  // unused warnings were only exposed to SemanticDB starting with Scala 3.3.4
+  def unusedDiagnosticsInSemanticdb(version: String): Boolean =
+    from(version).toOption.forall { v =>
+      v.isScala2 || ordering.gteq(v, Patch(Major.Scala3, 3, 4))
+    }
+
   def from(version: String): Try[ScalaVersion] = {
     version match {
       case NightlyVersion(major, minor, patch, rc, date, shortSha1) =>

@@ -34,7 +34,8 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     lazy val cliScalaVersions = {
       val unsupportedVersions: Set[String] =
         if (Properties.isJavaAtLeast("25")) Set(scala212, scala35, scala36)
-        else if (!Properties.isJavaAtLeast("17")) Set(scala38)
+        else if (!Properties.isJavaAtLeast("17"))
+          Set(scala38, scala39, scala3Next)
         else Set.empty
       (coreScalaVersions ++ scala3Versions).filterNot(unsupportedVersions)
     }
@@ -147,6 +148,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
         "scala36" -> scala36,
         "scala37" -> scala37,
         "scala38" -> scala38,
+        "scala39" -> scala39,
         "scala3LTS" -> scala3LTS,
         "scala3Next" -> scala3Next,
         sbtVersion
@@ -206,7 +208,8 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
         }
     },
     commands += Command.command("ci-docs") { state =>
-      "docs2_13/run" :: // reduce risk of errors on deploy-website.yml
+      "core3 / Compile / doc" ::
+        "docs2_13/run" :: // reduce risk of errors on deploy-website.yml
         "interfaces/doc" ::
         state
     },
@@ -238,6 +241,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
   )
 
   private val PreviousScalaVersion: Map[String, Option[String]] = Map(
+    "3.9.0" -> None
   )
 
   override def buildSettings: Seq[Setting[_]] = List(
@@ -304,7 +308,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     Compile / unmanagedSourceDirectories ++= {
       val dir = (Compile / sourceDirectory).value
       scalaVersion.value match {
-        case `scala3LTS` => Seq(dir / "scala-3lts")
+        case `scala33` => Seq(dir / "scala-3.3")
         case `scala3Next` => Seq(dir / "scala-3next")
         case _ => Nil
       }

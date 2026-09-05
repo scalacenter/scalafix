@@ -20,4 +20,9 @@ object ReplaceSymbol {
   val y: mutable.CoolBuffer[Int] = mutable.CoolBuffer.empty[Int]
   val z: com.geirsson.mutable.CoolBuffer[Int] =
     com.geirsson.mutable.CoolBuffer.empty[Int]
+  def build(): Int = {
+    case class Local(a: Int, b: Int)
+    val x = Local(a = 1, b = 2)
+    x.a + x.b
+  }
 }

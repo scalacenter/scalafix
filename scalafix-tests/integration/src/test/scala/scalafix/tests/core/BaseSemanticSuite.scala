@@ -2,12 +2,12 @@ package scalafix.tests.core
 
 import scala.meta._
 import scala.meta.internal.io.PathIO
-import scala.meta.internal.symtab.SymbolTable
 
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.funsuite.AnyFunSuite
 import scalafix.internal.config.ScalaVersion
 import scalafix.internal.reflect.ClasspathOps
+import scalafix.internal.symtab.SymbolTable
 import scalafix.internal.v0.LegacyInMemorySemanticdbIndex
 import scalafix.syntax._
 import scalafix.testkit.DiffAssertions

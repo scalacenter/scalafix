@@ -21,7 +21,7 @@ The build uses `sbt-projectmatrix` to generate multiple sub-projects per module,
 - Each test project is built with a specific Scala version (the "target")
 - Test frameworks compiled with another Scala version can test against that target
 - Some targets include `-Xsource:3` flag (tagged with `Xsource3Axis`)
-- Example: `expect3_3_6Target3_3_6` tests rules compiled with 3.3.6 against input also compiled with 3.3.6
+- Example: `expect3_8_4Target3_8_4` tests rules compiled with 3.8.4 against input also compiled with 3.8.4
 
 **Key build concepts:**
 - `projectMatrix`: Defines modules that cross-compile
@@ -34,20 +34,24 @@ The build uses `sbt-projectmatrix` to generate multiple sub-projects per module,
 
 ### Running Tests
 ```bash
-# Unit tests for latest Scala 3.3.6 version
-sbt "unit3_3_6 / test"
+# Unit tests for latest Scala 3.8.4 version
+sbt "unit3_8_4 / test"
 
 # Integration tests (contains many suites - use testOnly to narrow)
-sbt "integration3_3_6 / testOnly -- -z ProcedureSyntax"
+sbt "integration3_8_4 / testOnly -- -z ProcedureSyntax"
 
 # Test built-in rules using scalafix-testkit
-sbt "expect3_3_6Target3_3_6 / test"
+sbt "expect3_8_4Target3_8_4 / test"
 
 # Windows-compatible tests only
-sbt "unit3_3_6 / testWindows"
+sbt "unit3_8_4 / testWindows"
 ```
 
 **Pattern**: Test project names combine the Scala version used to compile the test framework with the target being tested: `unit{CompilerVersion}` or `expect{CompilerVersion}Target{TargetVersion}`
+
+If a project name from these examples stops resolving, run `sbt projects` and
+pick the matching latest generated project name from the matrix instead of
+falling back to the root `test` task.
 
 ### Applying Scalafix to Itself (Dogfooding)
 ```bash
@@ -138,8 +142,8 @@ import Unused  // assert: UnusedImport  (linter assertion)
 
 ## Common Pitfalls
 
-1. **Wrong test scope**: Use `unit3_3_6 / test` not `test` (ambiguous without projectmatrix context)
-2. **Missing BuildInfo**: IntelliJ debugger requires running `sbt "unit3_3_6 / test"` once to generate BuildInfo
+1. **Wrong test scope**: Use a generated matrix project such as `unit3_8_4 / test` not `test` (ambiguous without projectmatrix context)
+2. **Missing BuildInfo**: IntelliJ debugger requires running a matrix test such as `sbt "unit3_8_4 / test"` once to generate BuildInfo
 3. **Scala 3 reflect**: No `reflect3` module - Scala 3 rules can't dynamically compile
 4. **Dependency resolution**: When bumping Scala versions, update `versionPolicyIgnored` in `ScalafixBuild.scala`
 5. **Test failures on Windows**: Use `testWindows` task, not `test`

@@ -37,6 +37,7 @@
 [38:11..38:12]:   test/ann#[T] => typeparam T
 [38:13..38:13]:   test/ann#`<init>`(). => primary ctor <init>(x: T)
 [38:14..38:15]:   test/ann#x. => private[this] val method x: T
+[38:14..38:15]:   test/ann#`<init>`().(x) => param x: T
 [39:7..39:11]:    test/ann1# => class ann1 extends Annotation with StaticAnnotation { +1 decls }
 [39:12..39:12]:   test/ann1#`<init>`(). => primary ctor <init>()
 [40:7..40:11]:    test/ann2# => class ann2 extends Annotation with StaticAnnotation { +1 decls }
@@ -116,6 +117,7 @@
 [121:16..121:28]: test/Test.C#RepeatedType# => case class RepeatedType extends AnyRef with Product with Serializable { +12 decls }
 [121:28..121:28]: test/Test.C#RepeatedType#`<init>`(). => primary ctor <init>(val s: String*)
 [121:29..121:30]: test/Test.C#RepeatedType#s. => val method s: String*
+[121:29..121:30]: test/Test.C#RepeatedType#`<init>`().(s) => val param s: String*
 [122:11..122:13]: test/Test.C#RepeatedType#m1(). => method m1(x: Int*): Int
 [122:14..122:15]: test/Test.C#RepeatedType#m1().(x) => param x: Int*
 [125:12..125:20]: test/Test.C#TypeType. => final object TypeType extends AnyRef { +5 decls }

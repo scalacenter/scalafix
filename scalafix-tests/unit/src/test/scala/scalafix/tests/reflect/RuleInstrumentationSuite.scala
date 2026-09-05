@@ -29,4 +29,15 @@ class RuleInstrumentationSuite extends AnyFunSuite {
     """.stripMargin,
     List("a.MyRule")
   )
+
+  // https://github.com/scalacenter/scalafix/issues/2462
+  check(
+    "companion object without extends",
+    """
+      |import scalafix.v1._
+      |class MyRule extends SyntacticRule("MyRule") {}
+      |object MyRule
+    """.stripMargin,
+    List("MyRule")
+  )
 }

@@ -7,10 +7,10 @@ import scala.collection.mutable.ListBuffer
 import scala.meta.Position
 import scala.meta.Tree
 import scala.meta.internal.metap.PrinterSymtab
-import scala.meta.internal.symtab.SymbolTable
 import scala.meta.internal.{semanticdb => s}
 
 import scalafix.internal.config.ScalafixConfig
+import scalafix.internal.symtab.SymbolTable
 import scalafix.lint.Diagnostic
 import scalafix.util.TreeOps
 import scalafix.v1.SemanticTree

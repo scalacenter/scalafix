@@ -533,6 +533,37 @@ Next, we override the `withConfiguration` method to read user configuration.
 The `withConfiguration` method is called once after the rule is loaded. The same
 rule instance is then used to process multiple files in the same project.
 
+The `Configuration` argument is not limited to `.scalafix.conf` settings. It also
+exposes compiler information that rules can validate up front:
+
+- `config.scalacOptions`: the Scalac options used to compile the project
+- `config.scalaVersion`: the Scala version of the project
+- `config.scalacClasspath`: the project classpath
+
+Semantic rules that depend on compiler flags should check `scalacOptions` inside
+`withConfiguration` and return a `Configured.error(...)` when a required option
+is missing. That fails fast with a clear message instead of producing incomplete
+results later. For example, `RemoveUnused` needs unused warnings such as
+`-Ywarn-unused` / `-Wunused` (see the [RemoveUnused](../rules/RemoveUnused.md)
+rule docs). A minimal check looks like this:
+
+```scala
+override def withConfiguration(config: Configuration): Configured[Rule] = {
+  val hasUnusedWarning = config.scalacOptions.exists(opt =>
+    opt.startsWith("-Ywarn-unused") || opt.startsWith("-Wunused")
+  )
+  if (hasUnusedWarning) Configured.ok(this)
+  else
+    Configured.error(
+      "This rule requires unused warnings to be enabled, for example " +
+        "`scalacOptions += "-Wunused:imports"`."
+    )
+}
+```
+
+You can combine that validation with loading rule-specific configuration from
+`config.conf` in the same `withConfiguration` override.
+
 The final step is to use the configuration to report errors only for literals
 types the user has configured to prohibit
 
@@ -664,6 +695,24 @@ The expansion rules for `github:org/repo` are the following:
 | `github:org/repo/com.example.RuleName` | (on `master`) `scalafix/rules/src/main/scala/com/example/RuleName.scala` |
 | `github:org/repo/RuleName?sha=main`    | (on `main`) `scalafix/rules/src/main/scala/fix/RuleName.scala`           |
 | `github:org/repo/RuleName?sha=HASH125` | (at commit `HASH125`) `scalafix/rules/src/main/scala/fix/RuleName.scala` |
+
+Private repositories are supported when a GitHub token is available. Scalafix
+looks for a token in the following places, in order:
+
+- the `scalafix.github.token` system property
+- the `SCALAFIX_GITHUB_TOKEN` environment variable
+- the `GITHUB_TOKEN` environment variable
+- the `GH_TOKEN` environment variable
+
+The token value should be the raw token, without a `Bearer` or `token` prefix.
+For a fine-grained personal access token, grant access only to the repository
+that contains the rule and set `Contents` to read-only. A classic personal
+access token also works, but it needs the broader `repo` scope to read private
+repositories.
+
+The same authentication is also applied when you use a direct
+`https://raw.githubusercontent.com/...` rule URL, including rules stored outside
+the standard `scalafix/rules/src/main/scala` layout.
 
 ## Publish the rule to Maven Central
 

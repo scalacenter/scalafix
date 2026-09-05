@@ -11,23 +11,26 @@ object RuleInstrumentation {
   def getRuleFqn(code: Input): Configured[Seq[String]] = {
     object ExtendsRule {
       def unapply(templ: Template): Boolean = {
-        val init = templ.inits.head
-        (init.tpe, init.argClauses) match {
-          case (Type.Name("Rewrite"), Seq()) => true /* v0 */
-          case (Type.Name("Rule"), Seq(ac)) =>
-            ac.values.lengthCompare(1) == 0 /* v0 */
-          case (Type.Name("SemanticRewrite"), Seq(ac)) =>
-            ac.values.lengthCompare(1) == 0 /* v0 */
-          case (Type.Name("SemanticRule"), Seq(ac)) =>
-            val len = ac.values.length
-            len == 1 /* v1 */ || len == 2 /* v0 */
-          case (Type.Name("v1.SemanticRule"), Seq(ac)) =>
-            ac.values.lengthCompare(1) == 0 /* v1 */
-          case (Type.Name("SyntacticRule"), Seq(ac)) =>
-            ac.values.lengthCompare(1) == 0 /* v1 */
-          case (Type.Name("v1.SyntacticRule"), Seq(ac)) =>
-            ac.values.lengthCompare(1) == 0 /* v1 */
-          case _ => false
+        templ.inits.headOption match {
+          case None => false
+          case Some(init) =>
+            (init.tpe, init.argClauses) match {
+              case (Type.Name("Rewrite"), Seq()) => true /* v0 */
+              case (Type.Name("Rule"), Seq(ac)) =>
+                ac.values.lengthCompare(1) == 0 /* v0 */
+              case (Type.Name("SemanticRewrite"), Seq(ac)) =>
+                ac.values.lengthCompare(1) == 0 /* v0 */
+              case (Type.Name("SemanticRule"), Seq(ac)) =>
+                val len = ac.values.length
+                len == 1 /* v1 */ || len == 2 /* v0 */
+              case (Type.Name("v1.SemanticRule"), Seq(ac)) =>
+                ac.values.lengthCompare(1) == 0 /* v1 */
+              case (Type.Name("SyntacticRule"), Seq(ac)) =>
+                ac.values.lengthCompare(1) == 0 /* v1 */
+              case (Type.Name("v1.SyntacticRule"), Seq(ac)) =>
+                ac.values.lengthCompare(1) == 0 /* v1 */
+              case _ => false
+            }
         }
       }
     }

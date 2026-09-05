@@ -7,10 +7,10 @@ import scala.meta.internal.ScalametaInternals
 import scala.meta.internal.semanticdb.SymbolInformation
 import scala.meta.internal.semanticdb.SymbolInformation.{Kind => k}
 import scala.meta.internal.semanticdb.SymbolInformation.{Property => p}
-import scala.meta.internal.symtab.SymbolTable
 import scala.meta.internal.{semanticdb => s}
 
 import scalafix.internal.patch.CrashingSemanticdbIndex
+import scalafix.internal.symtab.SymbolTable
 import scalafix.internal.v0.LegacySemanticdbIndex._
 import scalafix.internal.v1.TreePos
 import scalafix.v0
@@ -67,7 +67,13 @@ final class LegacySemanticdbIndex(val doc: v1.SemanticDocument)
     }
 
   override def symbol(position: Position): Option[v0.Symbol] =
-    doc.internal.symbols(position).toList.map(s => v0.Symbol(s.value)) match {
+    doc.internal
+      .symbols(position)
+      .toList
+      // Scala 3's SemanticDB can emit occurrences whose symbol is the
+      // placeholder string "<?>".
+      // For example, see https://github.com/scala/scala3/issues/26521.
+      .flatMap(s => scala.util.Try(v0.Symbol(s.value)).toOption) match {
       case Nil => None
       case head :: Nil => Some(head)
       case multi => Some(v0.Symbol.Multi(multi))

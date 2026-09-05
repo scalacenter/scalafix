@@ -55,4 +55,9 @@ object ReplaceSymbol {
   val y: mutable.ListBuffer[Int] = mutable.ListBuffer.empty[Int]
   val z: scala.collection.mutable.ListBuffer[Int] =
     scala.collection.mutable.ListBuffer.empty[Int]
+  def build(): Int = {
+    case class Local(a: Int, b: Int)
+    val x = Local(a = 1, b = 2)
+    x.a + x.b
+  }
 }

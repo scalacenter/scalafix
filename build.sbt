@@ -38,6 +38,7 @@ lazy val interfaces = project
       props.put("scala36", scala36)
       props.put("scala37", scala37)
       props.put("scala38", scala38)
+      props.put("scala39", scala39)
       props.put("scala3LTS", scala3LTS)
       props.put("scala3Next", scala3Next)
       val out =
@@ -99,7 +100,7 @@ lazy val core3 = project
   .settings(
     noPublishAndNoMima,
     buildInfoSettingsForCore,
-    scalaVersion := scala3LTS,
+    scalaVersion := scala33,
     libraryDependencies ++= Seq(
       googleDiff,
       metaconfig
@@ -163,7 +164,7 @@ lazy val reflect3 = project
   .settings(
     isFullCrossVersion,
     noPublishAndNoMima,
-    scalaVersion := scala3LTS,
+    scalaVersion := scala33,
     libraryDependencies ++= Seq(
       // CrossVersion.for3Use2_13 would only lookup a binary version artifact, but this is published with full version
       semanticdbScalacCore
@@ -450,6 +451,7 @@ lazy val docs = projectMatrix
   .in(file("scalafix-docs"))
   .settings(
     noPublishAndNoMima,
+    docusaurusVersion := DocusaurusVersion.V1,
     fork := true,
     run / baseDirectory := (ThisBuild / baseDirectory).value,
     moduleName := "scalafix-docs",

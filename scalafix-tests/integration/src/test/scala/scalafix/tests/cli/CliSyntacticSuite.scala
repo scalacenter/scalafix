@@ -129,6 +129,19 @@ class CliSyntacticSuite extends BaseCliSuite {
     expectedExit = ExitStatus.NoRulesError
   )
 
+  val expectedCheckDiff: String =
+    """|<expected fix>
+      |@@ -1,5 +1,5 @@
+      | object Main {
+      |   def foo(): Unit = {
+      |-    s"hello"
+      |+    "hello"
+      |   }
+      | }
+      |""".stripMargin
+
+  val onTestFailureMessage: String = "To fix this, run: sbt scalafixAll"
+
   check(
     name = "TestError",
     originalLayout = s"""/foobar.scala
@@ -138,19 +151,7 @@ class CliSyntacticSuite extends BaseCliSuite {
       |$original""".stripMargin,
     expectedExit = ExitStatus.TestError,
     outputAssert = { out =>
-      assert(
-        out.endsWith(
-          """|<expected fix>
-            |@@ -1,5 +1,5 @@
-            | object Main {
-            |   def foo(): Unit = {
-            |-    s"hello"
-            |+    "hello"
-            |   }
-            | }
-            |""".stripMargin
-        )
-      )
+      assert(out.endsWith(expectedCheckDiff))
     }
   )
 
@@ -162,6 +163,90 @@ class CliSyntacticSuite extends BaseCliSuite {
     expectedLayout = s"""/foobar.scala
       |$expected""".stripMargin,
     expectedExit = ExitStatus.Ok
+  )
+
+  check(
+    name = "TestError prints onTestFailure message",
+    originalLayout = s"""/.scalafix.conf
+      |onTestFailure = "$onTestFailureMessage"
+      |/foobar.scala
+      |$original""".stripMargin,
+    args = Array("--check", "-r", "RedundantSyntax", "foobar.scala"),
+    expectedLayout = s"""/.scalafix.conf
+      |onTestFailure = "$onTestFailureMessage"
+      |/foobar.scala
+      |$original""".stripMargin,
+    expectedExit = ExitStatus.TestError,
+    outputAssert = { out =>
+      assert(out.endsWith(expectedCheckDiff + onTestFailureMessage + "\n"))
+    }
+  )
+
+  check(
+    name = "--check OK does not print onTestFailure message",
+    originalLayout = s"""/.scalafix.conf
+      |onTestFailure = "$onTestFailureMessage"
+      |/foobar.scala
+      |$expected""".stripMargin,
+    args = Array("--check", "-r", "RedundantSyntax", "foobar.scala"),
+    expectedLayout = s"""/.scalafix.conf
+      |onTestFailure = "$onTestFailureMessage"
+      |/foobar.scala
+      |$expected""".stripMargin,
+    expectedExit = ExitStatus.Ok,
+    outputAssert = { out =>
+      assert(!out.contains(onTestFailureMessage))
+    }
+  )
+
+  check(
+    name =
+      "onTestFailure message not printed when mixed with non-fixable errors",
+    originalLayout = s"""/.scalafix.conf
+      |onTestFailure = "$onTestFailureMessage"
+      |/dir/a.scala
+      |$original
+      |/dir/b.scala
+      |object Broken {
+      |""".stripMargin,
+    args = Array("--check", "-r", "RedundantSyntax", "dir"),
+    expectedLayout = s"""/.scalafix.conf
+      |onTestFailure = "$onTestFailureMessage"
+      |/dir/a.scala
+      |$original
+      |/dir/b.scala
+      |object Broken {
+      |""".stripMargin,
+    expectedExit =
+      ExitStatus.merge(ExitStatus.ParseError, ExitStatus.TestError),
+    outputAssert = { out =>
+      assert(!out.contains(onTestFailureMessage))
+    }
+  )
+
+  check(
+    name = "onTestFailure message not printed when an input path is missing",
+    originalLayout = s"""/.scalafix.conf
+      |onTestFailure = "$onTestFailureMessage"
+      |/foobar.scala
+      |$original""".stripMargin,
+    args = Array(
+      "--check",
+      "-r",
+      "RedundantSyntax",
+      "foobar.scala",
+      "missing.scala"
+    ),
+    expectedLayout = s"""/.scalafix.conf
+      |onTestFailure = "$onTestFailureMessage"
+      |/foobar.scala
+      |$original""".stripMargin,
+    expectedExit =
+      ExitStatus.merge(ExitStatus.UnexpectedError, ExitStatus.TestError),
+    outputAssert = { out =>
+      assert(out.contains("is not a file"))
+      assert(!out.contains(onTestFailureMessage))
+    }
   )
 
   check(
