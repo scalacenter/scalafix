@@ -26,7 +26,9 @@ object EmptyDiff extends DiffDisable {
 }
 
 class FullDiffDisable(diffs: List[GitDiff]) extends DiffDisable {
-  override def isEmpty: Boolean = diffs.isEmpty
+  // Always non-empty: distinguish "diff requested but empty" (delete-only /
+  // no changes) from EmptyDiff ("no diff requested"). See #2505.
+  override def isEmpty: Boolean = false
   private val newFiles: Set[String] = diffs.collect { case NewFile(path) =>
     path.toAbsolutePath.toString
   }.toSet
