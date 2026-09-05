@@ -791,7 +791,7 @@ class OrganizeImports(
             sb.append('{')
             if (useOuterSpace) sb.append(' ')
           }
-          sb.append(treeSyntax(single))
+          sb.append(importeeSyntax(single))
           if (isCurly) {
             if (useOuterSpace) sb.append(' ')
             sb.append('}')
@@ -822,7 +822,7 @@ class OrganizeImports(
             if (sb.length > sblen) sb.append(',').append(sep)
             val proto = i2.originalPrototype()
             proto.begComment.foreach(appendBegComment)
-            sb.append(treeSyntax(i2))
+            sb.append(importeeSyntax(i2))
             proto.endComment.foreach(appendEndComment)
           }
           if (isMultiline) {
@@ -1152,22 +1152,72 @@ object OrganizeImports {
       Try(symbol.info).toOption.flatten
   }
 
-  @inline
+  /**
+   * Emits an importer ref segment by segment: only leaf names can be taken from
+   * the source, so inter-segment trivia (`a . b`, a ref wrapped over several
+   * lines) can never leak into the output.
+   */
   private def refSyntax(ref: Term)(implicit dialect: Dialect): String =
     ref match {
-      case Term.Select(qual, name) if !name.pos.isEmpty =>
-        refSyntax(qual) + "." + name.pos.text
-      case _ if !ref.pos.isEmpty =>
-        ref.pos.text
-      case Term.Select(qual, name) =>
-        refSyntax(qual) + "." + treeSyntax(name)
-      case _ =>
-        treeSyntax(ref)
+      case t: Term.Name => nameSyntax(t)
+      case Term.Select(qual, name) => refSyntax(qual) + "." + nameSyntax(name)
+      case _ => treeSyntax(ref)
     }
 
-  @inline
+  /**
+   * Canonical, dialect-normalized syntax. Use for comparison keys ONLY (dedup,
+   * grouping, sorting): two importers/importees that mean the same thing must
+   * produce the same key regardless of how they were spelled in the source, so
+   * ordering here deliberately follows the dialect-normalized spelling rather
+   * than e.g. an author's backticks (see `refSyntax`/`importeeSyntax` for
+   * output, and https://github.com/scalacenter/scalafix/pull/2500 for why these
+   * two must not be conflated).
+   */
   private def treeSyntax(tree: Tree)(implicit dialect: Dialect): String =
     tree.reprint()
+
+  /**
+   * Emits a leaf `Name` as it was spelled in the source, so that backquotes
+   * around identifiers the target dialect does not consider keywords are not
+   * dropped (soft keywords, e.g. `` `export` ``,
+   * https://github.com/scalacenter/scalafix/issues/2480).
+   *
+   * NB: always reads the name's own position, never `originalPrototype()` --
+   * the latter would resurrect pre-rewrite text for a node produced by
+   * `copy(field = ...)` (e.g. `expandRelative`'s `replaceTopQualifier`).
+   */
+  private def nameSyntax(name: Name)(implicit dialect: Dialect): String =
+    name.pos match {
+      case p: Position.Range => p.text
+      case _ => treeSyntax(name)
+    }
+
+  private def typeSyntax(tpe: Type)(implicit dialect: Dialect): String =
+    tpe match {
+      case t: Type.Name => nameSyntax(t)
+      case Type.Select(qual, name) => refSyntax(qual) + "." + nameSyntax(name)
+      case _ => treeSyntax(tpe) // Type.Apply, Type.Project, ...
+    }
+
+  /**
+   * Emits an importee: leaf names come from the source, every connective token
+   * (`=>` vs `as`, `given`) is produced for the target dialect, so a dialect
+   * migration keeps the source spelling of the names it moves. Separators match
+   * the pretty-printer's, so output is unchanged for unescaped names.
+   */
+  private def importeeSyntax(importee: Importee)(implicit
+      dialect: Dialect
+  ): String = {
+    def arrow = if (dialect.allowAsForImportRename) "as" else "=>"
+    importee match {
+      case Importee.Name(name) => nameSyntax(name)
+      case Importee.Rename(name, rename) =>
+        s"${nameSyntax(name)} $arrow ${nameSyntax(rename)}"
+      case Importee.Unimport(name) => s"${nameSyntax(name)} $arrow _"
+      case Importee.Given(tpe) => "given " + typeSyntax(tpe)
+      case _ => treeSyntax(importee) // Wildcard, GivenAll
+    }
+  }
 
   implicit private class ImporteeExtension(val importee: Importee)
       extends AnyVal {
