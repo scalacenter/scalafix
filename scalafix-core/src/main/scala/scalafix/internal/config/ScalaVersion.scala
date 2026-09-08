@@ -168,6 +168,11 @@ object ScalaVersion {
       v.isScala2 || ordering.gteq(v, Patch(Major.Scala3, 3, 4))
     }
 
+  def explicitResultTypesSupported(version: String): Boolean =
+    from(version).toOption.forall { v =>
+      !v.isScala3 || ordering.gteq(v, Patch(Major.Scala3, 3, 0))
+    }
+
   def from(version: String): Try[ScalaVersion] = {
     version match {
       case NightlyVersion(major, minor, patch, rc, date, shortSha1) =>

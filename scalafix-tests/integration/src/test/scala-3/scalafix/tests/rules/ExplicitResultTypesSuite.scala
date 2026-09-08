@@ -68,4 +68,20 @@ class ExplicitResultTypesSuite extends AnyFunSuite {
     assert(rule.withConfiguration(neitherLTSNorNext.withConf(conf)).isOk)
   }
 
+  test("Scala 3.10 is not mistaken for Scala 3.1") {
+    val scala310 =
+      config.withScalaVersion("3.10.0-RC1")
+
+    val v =
+      buildinfo.RulesBuildInfo.scalaVersion.split('.').take(2).mkString(".")
+
+    val expected =
+      s"The ExplicitResultTypes rule was compiled with a different Scala 3 minor ($v) than the target sources (3.10). " +
+        "To fix this problem, make sure you are running the latest version of Scalafix. " +
+        "If that is the case, either change your build to stick to the Scala 3 LTS or Next versions supported by Scalafix, or " +
+        "enable ExplicitResultTypes.fetchScala3CompilerArtifactsOnVersionMismatch in .scalafix.conf in order to try to load what is needed dynamically."
+
+    assert(rule.withConfiguration(scala310) == Configured.error(expected))
+  }
+
 }
