@@ -7,6 +7,7 @@ import scala.meta.*
 
 import dotty.tools.pc.ScalaPresentationCompiler
 import metaconfig.Configured
+import scalafix.internal.config.ScalaVersion
 import scalafix.internal.pc.PresentationCompilerTypeInferrer
 import scalafix.patch.Patch
 import scalafix.v1.*
@@ -61,7 +62,7 @@ final class ExplicitResultTypes(
           s"To fix this problem, either remove ExplicitResultTypes from .scalafix.conf or make sure Scalafix is loaded with $majorMinorScalaVersion."
       )
     } else if (
-      Seq("3.0", "3.1", "3.2").exists(v => config.scalaVersion.startsWith(v))
+      !ScalaVersion.explicitResultTypesSupported(config.scalaVersion)
     ) {
       Configured.error(
         s"The ExplicitResultTypes rule requires Scala 3 target sources to be compiled with Scala 3.3.0 or greater, but they were compiled with ${config.scalaVersion}. " +

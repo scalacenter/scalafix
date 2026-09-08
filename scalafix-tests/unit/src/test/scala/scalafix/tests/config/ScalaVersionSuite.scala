@@ -73,4 +73,21 @@ class ScalaVersionSuite extends munit.FunSuite {
     }
   }
 
+  test("explicitResultTypesSupported") {
+    val cases = List(
+      "3.10.0-RC1" -> true,
+      "3.3.0" -> true,
+      "3.2.2" -> false,
+      "3.1.3" -> false,
+      "not-a-version" -> true // unparseable stays permissive
+    )
+    cases.foreach { case (version, expected) =>
+      assertEquals(
+        ScalaVersion.explicitResultTypesSupported(version),
+        expected,
+        clue = version
+      )
+    }
+  }
+
 }
