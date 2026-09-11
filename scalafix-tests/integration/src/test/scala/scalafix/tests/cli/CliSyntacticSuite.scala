@@ -199,6 +199,148 @@ class CliSyntacticSuite extends BaseCliSuite {
     }
   )
 
+  val fixableHint: String =
+    "can be fixed by running scalafix without --dry-run"
+
+  check(
+    name = "--dry-run does not write to file nor print a diff",
+    originalLayout = s"""/foobar.scala
+      |$original""".stripMargin,
+    args = Array("--dry-run", "-r", "RedundantSyntax", "foobar.scala"),
+    expectedLayout = s"""/foobar.scala
+      |$original""".stripMargin,
+    expectedExit = ExitStatus.Ok,
+    outputAssert = { out =>
+      assert(!out.contains("<expected fix>"))
+      assert(out.contains(s"1 file $fixableHint"), out)
+    }
+  )
+
+  check(
+    name = "--dry-run counts every fixable file",
+    originalLayout = s"""/dir/a.scala
+      |$original
+      |/dir/b.scala
+      |$original
+      |/dir/c.scala
+      |$expected""".stripMargin,
+    args = Array("--dry-run", "-r", "RedundantSyntax", "dir"),
+    expectedLayout = s"""/dir/a.scala
+      |$original
+      |/dir/b.scala
+      |$original
+      |/dir/c.scala
+      |$expected""".stripMargin,
+    expectedExit = ExitStatus.Ok,
+    outputAssert = { out =>
+      assert(out.contains(s"2 files $fixableHint"), out)
+    }
+  )
+
+  check(
+    name = "--dry-run on already fixed file reports nothing",
+    originalLayout = s"""/foobar.scala
+      |$expected""".stripMargin,
+    args = Array("--dry-run", "-r", "RedundantSyntax", "foobar.scala"),
+    expectedLayout = s"""/foobar.scala
+      |$expected""".stripMargin,
+    expectedExit = ExitStatus.Ok,
+    outputAssert = { out =>
+      assert(!out.contains(fixableHint), out)
+    }
+  )
+
+  check(
+    name = "--dry-run reports linter errors",
+    originalLayout = s"""/foobar.scala
+      |$original""".stripMargin,
+    args = Array(
+      "--dry-run",
+      "-r",
+      "scala:scalafix.test.cli.LintError",
+      "foobar.scala"
+    ),
+    expectedLayout = s"""/foobar.scala
+      |$original""".stripMargin,
+    expectedExit = ExitStatus.LinterError,
+    outputAssert = { out =>
+      assert(out.contains("Error!"))
+    }
+  )
+
+  check(
+    name = "--dry-run does not print onTestFailure message",
+    originalLayout = s"""/.scalafix.conf
+      |onTestFailure = "$onTestFailureMessage"
+      |/foobar.scala
+      |$original""".stripMargin,
+    args = Array("--dry-run", "-r", "RedundantSyntax", "foobar.scala"),
+    expectedLayout = s"""/.scalafix.conf
+      |onTestFailure = "$onTestFailureMessage"
+      |/foobar.scala
+      |$original""".stripMargin,
+    expectedExit = ExitStatus.Ok,
+    outputAssert = { out =>
+      assert(!out.contains(onTestFailureMessage))
+    }
+  )
+
+  check(
+    name = "--dry-run takes precedence over --check",
+    originalLayout = s"""/foobar.scala
+      |$original""".stripMargin,
+    args = Array(
+      "--dry-run",
+      "--check",
+      "-r",
+      "RedundantSyntax",
+      "foobar.scala"
+    ),
+    expectedLayout = s"""/foobar.scala
+      |$original""".stripMargin,
+    expectedExit = ExitStatus.Ok,
+    outputAssert = { out =>
+      assert(!out.contains("<expected fix>"))
+      assert(out.contains(s"1 file $fixableHint"), out)
+    }
+  )
+
+  check(
+    name = "--dry-run does not mask errors on a fixable file",
+    originalLayout = s"""/foobar.scala
+      |$original""".stripMargin,
+    args = Array(
+      "--dry-run",
+      "-r",
+      "RedundantSyntax",
+      "foobar.scala",
+      "missing.scala"
+    ),
+    expectedLayout = s"""/foobar.scala
+      |$original""".stripMargin,
+    expectedExit = ExitStatus.UnexpectedError,
+    outputAssert = { out =>
+      assert(out.contains("is not a file"))
+      assert(out.contains(s"1 file $fixableHint"), out)
+    }
+  )
+
+  check(
+    name = "--dry-run still reports non-fixable errors",
+    originalLayout = s"""/dir/a.scala
+      |$original
+      |/dir/b.scala
+      |object Broken {
+      |""".stripMargin,
+    args = Array("--dry-run", "-r", "RedundantSyntax", "dir"),
+    expectedLayout = s"""/dir/a.scala
+      |$original
+      |/dir/b.scala
+      |object Broken {
+      |""".stripMargin,
+    expectedExit = ExitStatus.ParseError
+  )
+
   check(
     name =
       "onTestFailure message not printed when mixed with non-fixable errors",

@@ -275,7 +275,13 @@ object MainOps {
         args.config.reporter.lint(diag)
       }
     }
-    if (args.args.check) {
+    if (args.args.dryRun) {
+      // Lint diagnostics were already reported above. Report nothing about
+      // rewrites, and leave it to `run` to count and clear this TestError:
+      // --dry-run reports, it does not assert like --check does.
+      if (fixed == input.text) ExitStatus.Ok
+      else ExitStatus.TestError
+    } else if (args.args.check) {
       if (fixed == input.text) {
         ExitStatus.Ok
       } else {
@@ -407,6 +413,7 @@ object MainOps {
     val N = files.length
     val width = N.toString.length
     var exit = discoveryError
+    var fixable = 0
 
     args.rules.rules.foreach(_.beforeStart())
 
@@ -417,12 +424,26 @@ object MainOps {
         i += 1
       }
       val next = handleFile(args, file)
-      exit = ExitStatus.merge(exit, next)
+      // In --dry-run, TestError only means "this file has pending rewrites".
+      // Count it and clear it here, so that the exit code, and the checks
+      // `adjustExitCode` makes against it, are the same as for a normal run.
+      val status =
+        if (args.args.dryRun && next.is(ExitStatus.TestError)) {
+          fixable += 1
+          ExitStatus(next.code & ~ExitStatus.TestError.code)
+        } else next
+      exit = ExitStatus.merge(exit, status)
     }
 
     args.rules.rules.foreach(_.afterComplete())
 
     val result = adjustExitCode(args, exit, files)
+    if (fixable > 0) {
+      val noun = if (fixable == 1) "file" else "files"
+      args.args.out.println(
+        s"$fixable $noun can be fixed by running scalafix without --dry-run"
+      )
+    }
     // Only print the message when the entire failure is auto-fixable, i.e.
     // the exit status is exactly TestError, not merged with lint, parse,
     // input or other errors that running Scalafix cannot resolve.

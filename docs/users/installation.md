@@ -209,6 +209,22 @@ To automatically enforce that Scalafix has been run on all sources, use
 
 Use `scalafixAll --check`  to enforce Scalafix on your entire project.
 
+### Report linter errors only
+
+To look at linter errors without rewriting any file, use `scalafix --dry-run`.
+Unlike `--check`, it does not print the diff that a rewrite would produce, and
+files that could be fixed do not fail the invocation on their own - only linter
+errors do. Files with pending rewrites are reported as a count, so you know
+that running `scalafix` without `--dry-run` would change something.
+
+```sh
+$ scalafix --dry-run
+src/main/scala/Main.scala:4:18: error: [DisableSyntax.noSemicolons] semicolons are disabled
+    println("ok");
+                 ^
+2 files can be fixed by running scalafix without --dry-run
+```
+
 ### Cache in CI
 
 To avoid binary compatibility conflicts with the sbt classpath
