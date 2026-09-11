@@ -7,6 +7,7 @@ package test.organizeImports
 
 import z.Z // commentZ
 
+import c._ //commentWildcard
 import a.A
 
 object InlineCommentMoves {
