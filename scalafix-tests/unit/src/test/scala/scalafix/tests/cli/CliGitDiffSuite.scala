@@ -268,33 +268,34 @@ class CliGitDiffSuite extends AnyFunSuite with DiffAssertions {
     assertNoDiff(obtained, expected)
   }
 
-  gitTest("delete-only diff does not lint all files", SkipWindows) { (fs, git, cli) =>
-    val keep = "keep.scala"
-    val gone = "gone.scala"
+  gitTest("delete-only diff does not lint all files", SkipWindows) {
+    (fs, git, cli) =>
+      val keep = "keep.scala"
+      val gone = "gone.scala"
 
-    fs.add(
-      keep,
-      """|object Keep {
-        |  var keepVar = 1
-        |}""".stripMargin
-    )
-    fs.add(
-      gone,
-      """|object Gone {
-        |  var goneVar = 1
-        |}""".stripMargin
-    )
-    git.add(keep)
-    git.add(gone)
-    addConf(fs, git)
-    git.commit()
+      fs.add(
+        keep,
+        """|object Keep {
+          |  var keepVar = 1
+          |}""".stripMargin
+      )
+      fs.add(
+        gone,
+        """|object Gone {
+          |  var goneVar = 1
+          |}""".stripMargin
+      )
+      git.add(keep)
+      git.add(gone)
+      addConf(fs, git)
+      git.commit()
 
-    git.checkout("pr-1")
-    git.rm(gone)
-    git.commit()
+      git.checkout("pr-1")
+      git.rm(gone)
+      git.commit()
 
-    val obtained = runDiff(cli, ExitStatus.Ok)
-    assert(!obtained.contains("keepVar"))
+      val obtained = runDiff(cli, ExitStatus.Ok)
+      assert(!obtained.contains("keepVar"))
   }
 
   private def runDiff(cli: Cli, expected: ExitStatus, args: String*): String =
