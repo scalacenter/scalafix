@@ -210,6 +210,8 @@ final case class ScalafixArgumentsImpl(args: Args = Args.default)
         copy(args = args.copy(stdout = true))
       case ScalafixMainMode.AUTO_SUPPRESS_LINTER_ERRORS =>
         copy(args = args.copy(autoSuppressLinterErrors = true))
+      case ScalafixMainMode.DRY_RUN =>
+        copy(args = args.copy(dryRun = true))
       case ScalafixMainMode.IN_PLACE_TRIGGERED =>
         copy(args = args.copy(triggered = true))
     }

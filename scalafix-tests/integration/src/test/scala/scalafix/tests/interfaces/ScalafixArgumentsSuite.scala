@@ -415,6 +415,41 @@ class ScalafixArgumentsSuite extends AnyFunSuite with DiffAssertions {
     assert(contentAfterRun == fileEvaluation.previewPatches().get)
   }
 
+  fsTest("DRY_RUN reports lint errors without rewriting")() { case (api, cwd) =>
+    val main = cwd.resolve("src/Main.scala")
+    val contentBeforeRun =
+      FileIO.slurp(AbsolutePath(main), StandardCharsets.UTF_8)
+
+    val out = new ByteArrayOutputStream()
+    val args = api
+      .withRules(
+        List(
+          "RedundantSyntax", // syntactic rewrite
+          "DisableSyntax" // syntactic linter
+        ).asJava
+      )
+      .withParsedArguments(
+        List("--settings.DisableSyntax.noSemicolons", "true").asJava
+      )
+      .withPrintStream(new PrintStream(out))
+      .withMode(ScalafixMainMode.DRY_RUN)
+
+    val errors = args.run().toList.map(_.toString)
+    // the linter error is reported, but the fixable rewrite is not an error
+    assert(errors == List("LinterError"), out.toString)
+
+    val contentAfterRun =
+      FileIO.slurp(AbsolutePath(main), StandardCharsets.UTF_8)
+    assert(contentBeforeRun == contentAfterRun)
+
+    val stdout = fansi.Str(out.toString).plainText
+    assert(!stdout.contains("<expected fix>"), stdout)
+    assert(
+      stdout.contains("1 file can be fixed by running scalafix"),
+      stdout
+    )
+  }
+
   test("evaluate sees several patches for non-atomic patches") {
     val run = rawApi.withRules(List("CommentFileNonAtomic").asJava)
     val fileEvaluation = run.evaluate().getFileEvaluations.head
