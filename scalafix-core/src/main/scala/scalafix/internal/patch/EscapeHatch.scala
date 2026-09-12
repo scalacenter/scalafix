@@ -119,7 +119,7 @@ class EscapeHatch private (
   }
 
   def isEmpty: Boolean =
-    diffDisable.isEmpty && anchoredEscapes.isEmpty && annotatedEscapes.isEmpty
+    diffDisable.canSkip && anchoredEscapes.isEmpty && annotatedEscapes.isEmpty
 }
 
 object EscapeHatch {

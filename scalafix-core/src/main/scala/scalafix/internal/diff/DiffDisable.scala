@@ -16,19 +16,17 @@ object DiffDisable {
 sealed trait DiffDisable {
   def isDisabled(position: Position): Boolean
   def isDisabled(file: Input): Boolean
-  def isEmpty: Boolean
+  def canSkip: Boolean
 }
 
 object EmptyDiff extends DiffDisable {
-  override def isEmpty: Boolean = true
+  override def canSkip: Boolean = true
   def isDisabled(position: Position): Boolean = false
   def isDisabled(file: Input): Boolean = false
 }
 
 class FullDiffDisable(diffs: List[GitDiff]) extends DiffDisable {
-  // Always non-empty: distinguish "diff requested but empty" (delete-only /
-  // no changes) from EmptyDiff ("no diff requested"). See #2505.
-  override def isEmpty: Boolean = false
+  override def canSkip: Boolean = false
   private val newFiles: Set[String] = diffs.collect { case NewFile(path) =>
     path.toAbsolutePath.toString
   }.toSet
