@@ -172,6 +172,15 @@ class EscapeHatchSuite extends AnyFunSuite {
     assert(!hatch.isEmpty)
   }
 
+  test("FullDiffDisable with no new/modified files cannot skip (#2505)") {
+    val diff = DiffDisable(Nil)
+    assert(!diff.canSkip)
+    assert(diff.isDisabled(Input.String("object Untouched")))
+    val (input, tree) = params(noEscapes)
+    val hatch = EscapeHatch(input, tree, diff)
+    assert(!hatch.isEmpty)
+  }
+
   private def params(
       input: Input
   ): (Input, LazyValue[Tree]) = {
