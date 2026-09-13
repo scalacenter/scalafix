@@ -32,5 +32,14 @@ public enum ScalafixMainMode {
     /**
      * Use when the client triggers the run as a side effect of something else, as opposed to an explicit, interactive invocation. Write fixed contents in-place, with a custom configuration if it exists.
      */
-    IN_PLACE_TRIGGERED
+    IN_PLACE_TRIGGERED,
+
+    /**
+     * Report linter errors and how many files would be fixed by a subsequent run.
+     *
+     * Unlike {@link #CHECK}, files that would be fixed do not cause an error to be reported.
+     *
+     * Does not write to files.
+     */
+    DRY_RUN
 }
