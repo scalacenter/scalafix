@@ -14,11 +14,12 @@ object Dependencies {
   val scala37 = "3.7.4"
   val scala38 = "3.8.4"
   val scala39 = "3.9.0"
+  val scala310 = "3.10.0-RC2"
   val scala3LTS = scala39
-  val scala3Next = sys.props.getOrElse("scala3.nightly", scala39)
+  val scala3Next = sys.props.getOrElse("scala3.nightly", scala310)
 
   val scala2Versions = Seq(scala212, scala213)
-  val scala3Versions = Seq(scala33, scala35, scala36, scala37, scala38, scala39)
+  val scala3Versions = Seq(scala33, scala35, scala36, scala37, scala38, scala39, scala310)
 
   val bijectionCoreV = "0.9.8"
   val collectionCompatV = "2.14.0"
