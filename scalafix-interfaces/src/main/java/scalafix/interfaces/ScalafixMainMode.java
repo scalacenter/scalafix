@@ -35,9 +35,9 @@ public enum ScalafixMainMode {
     IN_PLACE_TRIGGERED,
 
     /**
-     * Report linter errors only, without printing a diff of the fixed contents.
+     * Report linter errors and how many files would be fixed by a subsequent run.
      *
-     * Unlike {@link #CHECK}, files that could be fixed do not cause an error to be reported.
+     * Unlike {@link #CHECK}, files that would be fixed do not cause an error to be reported.
      *
      * Does not write to files.
      */

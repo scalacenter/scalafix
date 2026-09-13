@@ -200,7 +200,7 @@ class CliSyntacticSuite extends BaseCliSuite {
   )
 
   val fixableHint: String =
-    "can be fixed by running scalafix without --dry-run"
+    "would be fixed by running scalafix without --dry-run"
 
   check(
     name = "--dry-run does not write to file nor print a diff",
@@ -213,6 +213,7 @@ class CliSyntacticSuite extends BaseCliSuite {
     outputAssert = { out =>
       assert(!out.contains("<expected fix>"))
       assert(out.contains(s"1 file $fixableHint"), out)
+      assert(!out.contains("Also,"), out)
     }
   )
 
@@ -234,6 +235,27 @@ class CliSyntacticSuite extends BaseCliSuite {
     expectedExit = ExitStatus.Ok,
     outputAssert = { out =>
       assert(out.contains(s"2 files $fixableHint"), out)
+    }
+  )
+
+  check(
+    name = "--dry-run prefixes the count with Also when lint was reported",
+    originalLayout = s"""/foobar.scala
+      |$original""".stripMargin,
+    args = Array(
+      "--dry-run",
+      "-r",
+      "RedundantSyntax",
+      "-r",
+      "scala:scalafix.test.cli.LintError",
+      "foobar.scala"
+    ),
+    expectedLayout = s"""/foobar.scala
+      |$original""".stripMargin,
+    expectedExit = ExitStatus.LinterError,
+    outputAssert = { out =>
+      assert(out.contains("Error!"))
+      assert(out.contains(s"Also, 1 file $fixableHint"), out)
     }
   )
 

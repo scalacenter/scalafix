@@ -440,8 +440,10 @@ object MainOps {
     val result = adjustExitCode(args, exit, files)
     if (fixable > 0) {
       val noun = if (fixable == 1) "file" else "files"
+      // "Also" tells the count apart from any lint report printed above
+      val also = if (args.callback.hasLintDiagnostics) "Also, " else ""
       args.args.out.println(
-        s"$fixable $noun can be fixed by running scalafix without --dry-run"
+        s"$also$fixable $noun would be fixed by running scalafix without --dry-run"
       )
     }
     // Only print the message when the entire failure is auto-fixable, i.e.

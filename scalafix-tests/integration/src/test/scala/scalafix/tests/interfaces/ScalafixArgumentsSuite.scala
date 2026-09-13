@@ -445,7 +445,7 @@ class ScalafixArgumentsSuite extends AnyFunSuite with DiffAssertions {
     val stdout = fansi.Str(out.toString).plainText
     assert(!stdout.contains("<expected fix>"), stdout)
     assert(
-      stdout.contains("1 file can be fixed by running scalafix"),
+      stdout.contains("Also, 1 file would be fixed by running scalafix"),
       stdout
     )
   }

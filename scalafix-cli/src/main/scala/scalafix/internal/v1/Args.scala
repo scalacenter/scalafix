@@ -71,8 +71,7 @@ case class Args(
     @Description("Print fixed output to stdout instead of writing in-place.")
     stdout: Boolean = false,
     @Description(
-      "Report linter errors without writing to files or printing a diff, " +
-        "reporting how many files could be fixed by a subsequent run. " +
+      "Report linter errors and how many files would be fixed by a subsequent run. " +
         "Unlike --check, auto-fixable violations alone do not fail the run."
     )
     dryRun: Boolean = false,
