@@ -27,7 +27,7 @@
                   }](*)
 [29:3..29:12]:    Option.apply[a.Inner](*)
 [30:3..30:9]:     *.apply[Int & String]
-[30:3..30:45]:    Option.apply[Int & String](*)
+[30:3..30:42]:    Option.apply[Int & String](*)
 [31:3..31:39]:    Option.apply[PrettyTest](*)
 [38:7..38:10]:    test/ann# => class ann[T] extends Annotation with StaticAnnotation { self: ann[T] => +3 decls }
 [38:10..38:10]:   test/ann#`<init>`(). => primary ctor <init>[T](x: T): ann[T]
