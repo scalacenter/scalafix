@@ -17,6 +17,81 @@ MyCode.scala:10: error: [DisableSyntax.throw] exceptions should be avoided,
   ^^^^^
 ```
 
+## Diagnostic IDs
+
+Each diagnostic is reported under an ID of the form `DisableSyntax.<id>`, as
+shown in the example above. That full ID is what you pass to
+[suppression](../users/suppression.md) comments and annotations, and to the
+`lint.info` / `lint.warning` / `lint.error`
+[severity overrides](../users/configuration.md#overriding-the-linting-behavior) in
+`.scalafix.conf`:
+
+```scala
+val x: Any = null // scalafix:ok DisableSyntax.null
+```
+
+IDs are matched as regular expressions against the full ID, not compared for
+equality, so a shorter ID that is a prefix of a longer one also matches it. For
+example `DisableSyntax.val` matches `DisableSyntax.valPatterns` and
+`DisableSyntax.valInAbstract` as well. Anchor the expression, as in
+`DisableSyntax.val$`, when you want to match a single ID.
+
+For most settings the ID is the setting name with the `no` prefix dropped, but
+not for all of them, so here is every setting that can produce a diagnostic:
+
+| Setting | Diagnostic ID |
+| ------- | ------------- |
+| `keywords` | the keyword itself, e.g. `import` |
+| `noVars` | `var` |
+| `noThrows` | `throw` |
+| `noNulls` | `null` |
+| `noReturns` | `return` |
+| `noWhileLoops` | `while` |
+| `noAsInstanceOf` | `asInstanceOf`, or `asInstanceOfMatchable` for `asInstanceOf[Matchable]` |
+| `noIsInstanceOf` | `isInstanceOf` |
+| `noSemicolons` | `semicolons` |
+| `noTabs` | `tabs` |
+| `noXml` | `xml` |
+| `noCovariantTypes` | `covariant` |
+| `noContravariantTypes` | `contravariant` |
+| `noDefaultArgs` | `defaultArgs` |
+| `noValInAbstract` | `valInAbstract` |
+| `noImplicitObject` | `implicitObject` |
+| `noImplicitConversion` | `implicitConversion` |
+| `noFinalVal` | `finalVal` |
+| `noFinalize` | `finalize` |
+| `noValPatterns` | `valPatterns` |
+| `noUniversalEquality` | `==` or `!=`, whichever was used |
+| `regex` | the entry's `id`, or the pattern itself when no `id` is given |
+
+Prior to v0.15.0, six of these IDs kept the `no` prefix of their setting name
+instead of dropping it. If you suppress or reconfigure the severity of any of
+them, rename as follows:
+
+| Before v0.15.0 | Since v0.15.0 |
+| -------------- | ------------- |
+| `DisableSyntax.noSemicolons` | `DisableSyntax.semicolons` |
+| `DisableSyntax.noTabs` | `DisableSyntax.tabs` |
+| `DisableSyntax.noXml` | `DisableSyntax.xml` |
+| `DisableSyntax.noFinalVal` | `DisableSyntax.finalVal` |
+| `DisableSyntax.noFinalize` | `DisableSyntax.finalize` |
+| `DisableSyntax.noValPatterns` | `DisableSyntax.valPatterns` |
+
+Configuration setting names are unchanged; only the reported IDs moved.
+
+A stale reference stops matching, so a diagnostic you had suppressed or demoted
+is reported again and a previously green build can fail. How much help you get
+in finding one depends on where it is:
+
+- `// scalafix:ok` / `// scalafix:off` comments, and `@SuppressWarnings`
+  annotations written with the `scalafix:` prefix, also report an
+  `UnusedScalafixSuppression` at the stale reference. Note this is a *warning*,
+  so on its own it does not fail `--check`.
+- `@SuppressWarnings` annotations written *without* the `scalafix:` prefix, such
+  as `@SuppressWarnings(Array("DisableSyntax.noXml"))`, are not reported at all —
+  unused-suppression warnings are only emitted for prefixed rules.
+- Stale `lint.info` / `lint.warning` / `lint.error` entries are silently ignored.
+
 ## Configuration
 
 By default, this rule does not disable any particular syntax, every setting is
