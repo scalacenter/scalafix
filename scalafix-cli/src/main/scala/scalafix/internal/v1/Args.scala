@@ -113,6 +113,7 @@ case class Args(
         "Dependencies are required by rules like ExplicitResultTypes, but the dependencies do not " +
         "need to be compiled with semanticdb-scalac."
     )
+    @Repeated
     classpath: Classpath = Classpath(Nil),
     @Description(
       "Absolute path passed to semanticdb with -P:semanticdb:sourceroot:<path>. " +
@@ -168,6 +169,7 @@ case class Args(
     @Description(
       "Additional classpath for compiling and classloading custom rules, as a list of filesystem paths, separated by ':' on Unix or ';' on Windows."
     )
+    @Repeated
     toolClasspath: URLClassLoader = ClasspathOps.thisClassLoader,
     @Hidden
     @Description(
@@ -483,12 +485,11 @@ object Args extends TPrintImplicits {
   def decoder(base: Args): ConfDecoder[Args] = {
     implicit val cwd = base.cwd
     implicit val classpathDecoder: ConfDecoder[Classpath] =
-      ConfDecoder.stringConfDecoder.map { cp =>
+      ConfDecoder[List[String]].map { cps =>
         Classpath(
-          cp.split(File.pathSeparator)
-            .iterator
+          cps
+            .flatMap(_.split(File.pathSeparator))
             .map(path => AbsolutePath(path))
-            .toList
         )
       }
     @nowarn
