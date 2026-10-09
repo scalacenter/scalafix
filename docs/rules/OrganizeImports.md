@@ -628,8 +628,8 @@ same group and sorted by the order defined by the
 > order-preserving import group may appear after all the configured import
 > groups when:
 > 
-> 1.  The `expandRelative` option is set to `false` and there are relative
->     imports.
+> 1.  The `expandRelative` option is set to `false`, `groupSeparately`
+>     contains `Relative` (the default), and there are relative imports.
 > 
 > 2.  The `groupSeparately` parameter is set, and there are
 >     [matching imports](#groupseparately).
@@ -806,7 +806,7 @@ import control.NonFatal
 ```conf
 OrganizeImports {
   groups = ["re:javax?\\.", "scala.", "*"]
-  groupSeparately = [ByNameImplicits]
+  groupSeparately = [Relative, ByNameImplicits]
 }
 ```
 
@@ -921,7 +921,7 @@ import scala.concurrent.ExecutionContext
 -----------------
 
 This parameter places matching imports in a trailing order-preserving import
-group, together with relative imports, if any (see the [trailing
+group (see the [trailing
 order-preserving import group](OrganizeImports.md#groups) section for more
 details).
 
@@ -929,6 +929,42 @@ details).
 
 This parameter accepts a list of zero or more values
 described below.
+
+#### `Relative`
+
+When [`expandRelative`](#expandrelative) is `false`, place relative imports
+in the trailing order-preserving group. This is enabled by default because a
+relative import can depend on a preceding import.
+
+Omit `Relative` to group and sort relative imports by their resolved,
+fully qualified references. Their original relative spelling is retained in
+the output. For example, this configuration puts both imports in the same
+group without adding a blank line:
+
+```conf
+OrganizeImports {
+  expandRelative = false
+  groupSeparately = [ByTypeGivens]
+  groups = ["org.apache.pekko", "*"]
+}
+```
+
+```scala
+import org.apache.pekko
+import pekko.annotation.ApiMayChange
+```
+
+Take care when configuring groups: the resolved reference determines the
+group and sorting order, but it does not remove import dependencies. With
+`groups = ["scala.util.", "scala."]`, for example, `import util.Random` is
+moved before the prerequisite `import scala.util`, and the result fails to
+compile.
+
+**Migration note for the next release:** An explicit `groupSeparately` list
+now controls relative imports as well. Add `Relative` to an existing list
+to preserve the previous behavior. For example, change
+`groupSeparately = [ByTypeGivens]` to
+`groupSeparately = [Relative, ByTypeGivens]`.
 
 #### `ByNameImplicits`
 
@@ -1028,11 +1064,11 @@ come from any package `P` that must be imported earlier. This matters because:
 
 ### Default value
 
-`[ByTypeGivens]`
+`[Relative, ByTypeGivens]`
 
-This value is enabled by default because by-type given imports are more likely
-to produce invalid code when reorganized. When no such imports are present, the
-option has no effect.
+These values are enabled by default because relative imports and by-type given
+imports can depend on preceding imports. When no such imports are present, the
+options have no effect.
 
 ### Examples
 
@@ -1330,7 +1366,7 @@ OrganizeImports {
   blankLines = Auto
   coalesceToWildcardImportThreshold = null
   expandRelative = false
-  groupSeparately = []
+  groupSeparately = [Relative, ByTypeGivens]
   groupedImports = Explode
   groups = [
     "*"
@@ -1359,7 +1395,7 @@ OrganizeImports {
   blankLines = Auto
   coalesceToWildcardImportThreshold = 5
   expandRelative = false
-  groupSeparately = []
+  groupSeparately = [Relative, ByTypeGivens]
   groupedImports = Merge
   groups = [
     "*"
@@ -1580,4 +1616,3 @@ import scala.collection.immutable.{List => L}
 import scala.collection.mutable.Map
 import scala.collection.mutable.{Buffer => _, Seq => S, _}
 ```
-

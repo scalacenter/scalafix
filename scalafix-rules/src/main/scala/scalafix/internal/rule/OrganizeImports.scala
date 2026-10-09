@@ -99,29 +99,32 @@ class OrganizeImports(
   )(
       imports: Seq[Import]
   )(implicit doc: SemanticDocument): Patch = {
-    val (fullyQualifiedImporters, otherImporters) = {
+    val (regularImporters, otherImporters) = {
       val noUnusedIterator = imports.iterator
         .flatMap(_.importers)
         .flatMap(removeUnusedImporters(unusedImporteePositions))
 
+      val separateRelative =
+        config.groupSeparately.contains(GroupSeparately.Relative)
       val relativeImporters = new ArrayBuffer[Importer]
-      val fullyQualifiedIterator =
+      val regularIterator =
         if (config.expandRelative)
           noUnusedIterator.map { i =>
             if (isFullyQualified(diagnostics)(i)) i else expandRelative(i)
           }
+        else if (!separateRelative)
+          noUnusedIterator
         else
           noUnusedIterator.filter { i =>
             val ok = isFullyQualified(diagnostics)(i)
             if (!ok) relativeImporters += i
             ok
           }
-      val dedupedIterator = deduplicateImportees(fullyQualifiedIterator)
+      val dedupedIterator = deduplicateImportees(regularIterator)
       val mergedIterator = mergeOrExplodeImporters(diagnostics)(dedupedIterator)
 
-      // Moves relative imports (when `config.expandRelative` is false) and
-      // explicitly imported implicit names into a separate order preserving
-      // group. This group will be appended after all the other groups.
+      // Moves relative imports (when requested) and explicitly imported
+      // implicit names into a trailing order-preserving group.
       //
       // See https://github.com/liancheng/scalafix-organize-imports/issues/30
       // for why implicits require special handling.
@@ -131,12 +134,21 @@ class OrganizeImports(
         otherImporters ++=
           mergeOrExplodeImporters(diagnostics)(relativeImporters.iterator)
 
-      (noImplicits, otherImporters)
+      val importersWithSortKeys = noImplicits.map { importer =>
+        val sortKey =
+          if (
+            !config.expandRelative && !separateRelative &&
+            !isFullyQualified(diagnostics)(importer)
+          )
+            expandRelative(importer)
+          else importer
+        importer -> sortKey
+      }
+
+      (importersWithSortKeys, otherImporters)
     }
 
-    // Organizes all the fully-qualified global importers.
-    val fullyQualifiedGroups: Seq[ImportGroup] =
-      groupImporters(fullyQualifiedImporters)
+    val regularGroups: Seq[ImportGroup] = groupImporters(regularImporters)
 
     val orderPreservingGroup = {
       Option(
@@ -147,7 +159,7 @@ class OrganizeImports(
     // Builds a patch that inserts the organized imports.
     val insertionPatch = insertOrganizedImports(
       imports.head.tokens.head,
-      fullyQualifiedGroups ++
+      regularGroups ++
         orderPreservingGroup.map(ImportGroup(matchers.length, _))
     )
 
@@ -331,9 +343,11 @@ class OrganizeImports(
     )
   }
 
-  private def groupImporters(importers: Seq[Importer]): Seq[ImportGroup] =
+  private def groupImporters(
+      importers: Seq[(Importer, Importer)]
+  ): Seq[ImportGroup] =
     importers
-      .groupBy(matchImportGroup) // Groups imports by importer prefix.
+      .groupBy { case (_, sortKey) => matchImportGroup(sortKey) }
       .map { case (index, grouped) =>
         ImportGroup(index, organizeImportGroup(grouped))
       }
@@ -375,7 +389,7 @@ class OrganizeImports(
     } map (x => sortImportees(coalesceImportees(x)))
 
   private def organizeImportGroup(
-      importeesSorted: Seq[Importer]
+      importers: Seq[(Importer, Importer)]
   ): Seq[Importer] = {
     def appendImportees(imps: Iterable[Importee], sb: StringBuilder): Unit = {
       val sblen = sb.length
@@ -405,7 +419,9 @@ class OrganizeImports(
       if (inBraces) sb.append('\u0002')
     }
     def sortImporters[A: Ordering](f: Importer => A) =
-      importeesSorted map (x => x -> f(x)) sortBy (_._2) map (_._1)
+      importers map { case (original, sortKey) =>
+        original -> f(sortKey)
+      } sortBy (_._2) map (_._1)
 
     config.importsOrder match {
       case ImportsOrder.Ascii =>
@@ -418,7 +434,7 @@ class OrganizeImports(
       case ImportsOrder.SymbolsFirst =>
         sortImporters(sortSyntax(symbolsSortFunc))
       case ImportsOrder.Keep =>
-        importeesSorted
+        importers.map(_._1)
     }
   }
 
