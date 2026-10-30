@@ -35,7 +35,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
       val unsupportedVersions: Set[String] =
         if (Properties.isJavaAtLeast("25")) Set(scala212, scala35, scala36)
         else if (!Properties.isJavaAtLeast("17"))
-          Set(scala38, scala39, scala3Next)
+          Set(scala38, scala39, scala310, scala3Next)
         else Set.empty
       (coreScalaVersions ++ scala3Versions).filterNot(unsupportedVersions)
     }
@@ -149,6 +149,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
         "scala37" -> scala37,
         "scala38" -> scala38,
         "scala39" -> scala39,
+        "scala310" -> scala310,
         "scala3LTS" -> scala3LTS,
         "scala3Next" -> scala3Next,
         sbtVersion
@@ -241,6 +242,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
   )
 
   private val PreviousScalaVersion: Map[String, Option[String]] = Map(
+    "3.10.0-RC2" -> None
   )
 
   override def buildSettings: Seq[Setting[_]] = List(
