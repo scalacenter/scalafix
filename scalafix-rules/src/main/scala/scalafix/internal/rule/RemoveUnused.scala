@@ -59,7 +59,9 @@ class RemoveUnused(config: RemoveUnusedConfig)
 
   override def fix(implicit doc: SemanticDocument): Patch = {
     val isUnusedTerm = mutable.Set.empty[Position]
-    val isUnusedImport = mutable.Set.empty[Position]
+    val isUnusedImportee = new OrganizeImports.UnusedImporteePositions(
+      if (config.imports) doc.diagnostics else Iterator.empty
+    )
     val isUnusedPattern = mutable.Set.empty[Position]
     val isUnusedParam = mutable.Set.empty[Position]
 
@@ -68,9 +70,7 @@ class RemoveUnused(config: RemoveUnusedConfig)
 
     doc.diagnostics.foreach { diagnostic =>
       val msg = diagnostic.message
-      if (config.imports && diagnostic.message.toLowerCase == "unused import") {
-        isUnusedImport += diagnostic.position
-      } else if (
+      if (
         config.privates &&
         (
           (msg.startsWith("private") && msg.endsWith("is never used")) ||
@@ -106,7 +106,7 @@ class RemoveUnused(config: RemoveUnusedConfig)
     }
 
     if (
-      isUnusedImport.isEmpty && isUnusedTerm.isEmpty && isUnusedPattern.isEmpty && isUnusedParam.isEmpty
+      isUnusedImportee.isEmpty && isUnusedTerm.isEmpty && isUnusedPattern.isEmpty && isUnusedParam.isEmpty
     ) {
       // Optimization: don't traverse if there are no diagnostics to act on.
       Patch.empty
@@ -130,33 +130,20 @@ class RemoveUnused(config: RemoveUnusedConfig)
           .atomic
       }
 
-      def isUnusedImportee(importee: Importee): Boolean = {
-        val pos = importee match {
-          case Importee.Rename(from, _) => from.pos
-          case _ => importee.pos
-        }
-        isUnusedImport.exists { unused =>
-          unused.start <= pos.start && pos.end <= unused.end
-        }
-      }
-
       doc.tree.collect {
         case Importer(_, importees)
             if importees.forall(_.is[Importee.Unimport]) =>
           importees.map(Patch.removeImportee).asPatch
         case Importer(_, importees) =>
-          val hasUsedWildcard = importees.exists {
-            case i: Importee.Wildcard => !isUnusedImportee(i)
-            case _ => false
-          }
-          importees.collect {
-            case i @ Importee.Rename(_, to)
-                if isUnusedImportee(i) && hasUsedWildcard =>
+          val (unused, used) = importees.partition(isUnusedImportee)
+          val hasUsedWildcard = used.exists(_.is[Importee.Wildcard])
+          unused.map {
+            case i: Importee.Rename if hasUsedWildcard =>
               // Unimport the identifier instead of removing the importee since
               // unused renamed may still impact compilation by shadowing an identifier.
               // See https://github.com/scalacenter/scalafix/issues/614
-              Patch.replaceTree(to, "_").atomic
-            case i if isUnusedImportee(i) =>
+              Patch.replaceTree(i.rename, "_").atomic
+            case i =>
               Patch.removeImportee(i).atomic
           }.asPatch
         case i: Defn if isUnusedTerm(i.pos) =>
