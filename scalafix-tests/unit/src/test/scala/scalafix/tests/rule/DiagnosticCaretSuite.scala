@@ -1285,7 +1285,7 @@ class DiagnosticCaretSuite extends FunSuite {
       unusedImport,
       """|import scala.Predef.{any2stringadd => _}
         |import a.¦b""".stripMargin,
-      ""
+      "import scala.Predef.{any2stringadd => _}"
     )
   }
 
@@ -1302,7 +1302,7 @@ class DiagnosticCaretSuite extends FunSuite {
       unusedImport,
       """|import scala.Predef.{any2stringadd => _, augmentString => _}
         |import a.¦b""".stripMargin,
-      ""
+      "import scala.Predef.{any2stringadd => _, augmentString => _}"
     )
   }
 
@@ -1311,7 +1311,7 @@ class DiagnosticCaretSuite extends FunSuite {
       unusedImport,
       """|import Predef.{any2stringadd => _}
         |import a.¦b""".stripMargin,
-      ""
+      "import Predef.{any2stringadd => _}"
     )
   }
 
@@ -1319,7 +1319,7 @@ class DiagnosticCaretSuite extends FunSuite {
     checkUnused(
       unusedImport,
       "object A { import scala.Predef.{any2stringadd => _}; import a.¦b }",
-      "object A {; }"
+      "object A { import scala.Predef.{any2stringadd => _}; }"
     )
   }
 
@@ -1337,7 +1337,7 @@ class DiagnosticCaretSuite extends FunSuite {
       unusedImport,
       """|import a.{b => _}
         |import c.¦d""".stripMargin,
-      ""
+      "import a.{b => _}"
     )
   }
 
@@ -1345,7 +1345,7 @@ class DiagnosticCaretSuite extends FunSuite {
     check3(new RemoveUnused(), unusedImport)(
       """|import a.{b as _}
         |import c.¦d""".stripMargin,
-      ""
+      "import a.{b as _}"
     )
   }
 
@@ -1354,7 +1354,7 @@ class DiagnosticCaretSuite extends FunSuite {
       privateMember,
       """|import scala.Predef.{any2stringadd => _}
         |object A { private def ¦a = 1 }""".stripMargin,
-      """|
+      """|import scala.Predef.{any2stringadd => _}
         |object A {  }""".stripMargin
     )
   }
@@ -1364,7 +1364,7 @@ class DiagnosticCaretSuite extends FunSuite {
     check(rule, privateMember)(
       """|import a.{b => _}
         |object A { private def ¦a = 1 }""".stripMargin,
-      """|
+      """|import a.{b => _}
         |object A {  }""".stripMargin
     )
   }
@@ -1395,11 +1395,11 @@ class DiagnosticCaretSuite extends FunSuite {
   }
 
   test("unimport clause beside an unused clause") {
-    checkUnused(unusedImport, "import a.{b => _}, c.¦d", "")
+    checkUnused(unusedImport, "import a.{b => _}, c.¦d", "import a.{b => _}")
   }
 
   test("unused unimport beside another unimport") {
-    checkUnused(unusedImport, "import a.{¦b => _, c => _}", "")
+    checkUnused(unusedImport, "import a.{¦b => _, c => _}", "import a.{c => _}")
   }
 
   test("local unimport beside a wildcard, organized") {
