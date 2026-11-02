@@ -311,9 +311,12 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     Compile / doc / scalacOptions ++= scaladocOptions,
     Compile / unmanagedSourceDirectories ++= {
       val dir = (Compile / sourceDirectory).value
-      scalaVersion.value match {
-        case `scala33` => Seq(dir / "scala-3.3")
-        case `scala3Next` => Seq(dir / "scala-3next")
+      val ver = scalaVersion.value
+      CrossVersion.partialVersion(ver) match {
+        case Some((3L, minor)) =>
+          val srcdir = dir / s"scala-3.$minor"
+          if (ver == scala3Next) Seq(dir / "scala-3next", srcdir)
+          else Seq(srcdir)
         case _ => Nil
       }
     },
