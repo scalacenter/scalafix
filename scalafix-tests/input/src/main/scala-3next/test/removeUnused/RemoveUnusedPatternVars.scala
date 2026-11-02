@@ -68,7 +68,7 @@ object ob {
     case (a: Int, b) => println(b)
     case a@A(v) => ???
     case x :: (y1, y2) :: Nil => println(x)
-    case (zz) => ???
+    case ( /* c */ zz /* d */ ) => ???
   }
   try ??? catch {case e: Exception => ???}
 
