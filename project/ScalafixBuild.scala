@@ -247,6 +247,12 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     // https://github.com/sbt/sbt/issues/5568#issuecomment-1094380636
     versionPolicyIgnored ++=
       runtimeDepsForBackwardCompatibility.map(m => m.organization %% m.name),
+    // the 3.9.0 presentation compiler transitively pins a milestone version of the
+    // coursier interface (1.0.29-M4), and version policy cannot reason about
+    // milestone versions, so ignore the check for this dependency
+    versionPolicyIgnored ++= Seq(
+      "io.get-coursier" % "interface"
+    ),
     versionPolicyIgnoredInternalDependencyVersions :=
       Some("^\\d+\\.\\d+\\.\\d+\\+\\d+".r),
     versionScheme := Some("early-semver"),
