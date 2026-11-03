@@ -241,9 +241,14 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
   )
 
   private val PreviousScalaVersion: Map[String, Option[String]] = Map(
+    "3.3.9" -> Some("3.3.8")
   )
 
   override def buildSettings: Seq[Setting[_]] = List(
+    // lz4-java was relocated from org.lz4 to at.yawk.lz4 in the 3.3.9 compiler
+    versionPolicyIgnored ++= Seq(
+      "org.lz4" % "lz4-java"
+    ),
     // https://github.com/sbt/sbt/issues/5568#issuecomment-1094380636
     versionPolicyIgnored ++=
       runtimeDepsForBackwardCompatibility.map(m => m.organization %% m.name),
