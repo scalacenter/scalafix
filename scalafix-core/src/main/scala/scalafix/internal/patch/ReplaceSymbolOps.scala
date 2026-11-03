@@ -4,6 +4,7 @@ import scala.annotation.tailrec
 
 import scala.meta._
 
+import scalafix.internal.util.ImporterOps._
 import scalafix.internal.util.SymbolOps
 import scalafix.internal.util.SymbolOps.Root
 import scalafix.internal.util.SymbolOps.SignatureName
@@ -43,7 +44,7 @@ object ReplaceSymbolOps {
     // will be removed and should not count as collisions
     globalImports.flatMap { importStat =>
       importStat.importers.flatMap { importer =>
-        importer.importees.collect {
+        importer.values.collect {
           case Importee.Name(name) if !isMoved(name) => name.value
           case Importee.Rename(_, rename) => rename.value
         }
@@ -139,20 +140,17 @@ object ReplaceSymbolOps {
         case Some(i @ Importee.Name(_)) =>
           ctx.removeImportee(i)
         case Some(i @ Importee.Rename(name, rename)) =>
-          i.parent match {
-            case Some(Importer(ref, `i` :: Nil)) =>
-              Patch.replaceTree(ref, SymbolOps.toTermRef(to.owner).syntax) +
-                Patch.replaceTree(name, to.signature.name)
-            case Some(Importer(_, _)) =>
-              Patch.removeImportee(i) +
-                Patch.addGlobalImport(
-                  Importer(
-                    SymbolOps.toTermRef(to.owner),
-                    List(
-                      Importee.Rename(Term.Name(to.signature.name), rename)
-                    )
-                  )
-                )
+          importerOf(i) match {
+            case Some(importer) =>
+              val ref = SymbolOps.toTermRef(to.owner)
+              if (importer.values.lengthCompare(1) == 0)
+                Patch.replaceTree(importer.ref, ref.syntax) +
+                  Patch.replaceTree(name, to.signature.name)
+              else {
+                val imp = Importee.Rename(Term.Name(to.signature.name), rename)
+                Patch.removeImportee(i) +
+                  Patch.addGlobalImport(ref.importer(imp))
+              }
             case _ => Patch.empty
           }
         case Some(parent @ Select(_, `n`)) if isSelected =>

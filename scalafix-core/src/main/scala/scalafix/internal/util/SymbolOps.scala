@@ -10,6 +10,8 @@ import scalafix.v1
 
 object SymbolOps {
 
+  import ImporterOps._
+
   object SignatureName {
     def unapply(arg: Signature): Option[String] = arg match {
       case Signature.Term(a) => Some(a)
@@ -53,12 +55,7 @@ object SymbolOps {
       case Root(SignatureName(_)) =>
         None
       case Symbol.Global(qual, SignatureName(name)) =>
-        Some(
-          Importer(
-            toTermRef(qual),
-            List(Importee.Name(Name.Indeterminate(name)))
-          )
-        )
+        Some(toTermRef(qual).importer(Importee.Name(Name.Indeterminate(name))))
       case _ => None
     }
   }

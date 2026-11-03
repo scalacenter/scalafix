@@ -6,6 +6,7 @@ import scala.meta.tokens.Token
 
 import scalafix.XtensionOptionPatch
 import scalafix.XtensionSeqPatch
+import scalafix.internal.util.ImporterOps._
 import scalafix.patch.Patch
 import scalafix.util.SymbolMatcher
 import scalafix.v0
@@ -15,10 +16,9 @@ case class FqnRule(index: v0.SemanticdbIndex)
     extends v0.SemanticRule(index, "FqnRule") {
   override def fix(ctx: v0.RuleCtx): Patch =
     ctx.addGlobalImport(
-      Importer(
-        Term.Select(Term.Name("scala"), Term.Name("collection")),
-        List(Importee.Name(Name("immutable")))
-      )
+      Term
+        .Select(Term.Name("scala"), Term.Name("collection"))
+        .importer(Importee.Name(Name("immutable")))
     ) + {
       val fqnRule = SymbolMatcher.exact(v0.Symbol("test/FqnRule."))
       ctx.tree.collect { case fqnRule(t: Term.Name) =>
