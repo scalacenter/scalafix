@@ -365,7 +365,7 @@ class DiagnosticCaretSuite extends FunSuite {
   test("typed implicit lambda parameter") {
     check(new RemoveUnused(), explicitParameter, "x: Int")(
       "object A { f { implicit x: Int => 1 } }",
-      "object A { f { implicit x: Int => 1 } }"
+      "object A { f { (_: Int) => 1 } }"
     )
   }
 
@@ -373,7 +373,7 @@ class DiagnosticCaretSuite extends FunSuite {
     checkUnused(
       explicitParameter,
       "object A { f { implicit ¦x: Int => 1 } }",
-      "object A { f { implicit _: Int => 1 } }"
+      "object A { f { (_: Int) => 1 } }"
     )
   }
 
@@ -381,7 +381,7 @@ class DiagnosticCaretSuite extends FunSuite {
     checkUnused(
       explicitParameter,
       "object A { f { implicit /* a */ ¦x /* b */ : Int => 1 } }",
-      "object A { f { implicit /* a */ _ /* b */ : Int => 1 } }"
+      "object A { f { ( /* a */ _ /* b */ : Int) => 1 } }"
     )
   }
 
@@ -465,7 +465,7 @@ class DiagnosticCaretSuite extends FunSuite {
     checkUnused(
       patternVariable,
       "object A { 1 match { case ¦a @ 1 => } }",
-      "object A { 1 match { case _ @ 1 => } }"
+      "object A { 1 match { case 1 => } }"
     )
   }
 
@@ -488,7 +488,7 @@ class DiagnosticCaretSuite extends FunSuite {
     checkUnused(
       patternVariable,
       "object A { 1 match { case ¦a @ ¦b => } }",
-      "object A { 1 match { case _ @ _ => } }"
+      "object A { 1 match { case _ => } }"
     )
   }
 
@@ -496,7 +496,7 @@ class DiagnosticCaretSuite extends FunSuite {
     checkUnused(
       patternVariable,
       "object A { Nil match { case List(¦a @ _*) => } }",
-      "object A { Nil match { case List(_ @ _*) => } }"
+      "object A { Nil match { case List(_*) => } }"
     )
   }
 
@@ -511,7 +511,7 @@ class DiagnosticCaretSuite extends FunSuite {
     checkUnused(
       patternVariable,
       "object A { None match { case ¦a @ Some(¦b @ Some(_)) => } }",
-      "object A { None match { case _ @ Some(_ @ Some(_)) => } }"
+      "object A { None match { case Some(Some(_)) => } }"
     )
   }
 
@@ -531,7 +531,7 @@ class DiagnosticCaretSuite extends FunSuite {
     checkUnused(
       patternVariable,
       "object A { 1 match { case ¦a @ (_: Int) => } }",
-      "object A { 1 match { case _ @ (_: Int) => } }"
+      "object A { 1 match { case (_: Int) => } }"
     )
   }
 
@@ -546,7 +546,7 @@ class DiagnosticCaretSuite extends FunSuite {
     checkUnused(
       patternVariable,
       "object A { Option(1) match { case Some((¦a)) => } }",
-      "object A { Option(1) match { case Some(_) => } }"
+      "object A { Option(1) match { case Some((_)) => } }"
     )
   }
 
@@ -554,14 +554,14 @@ class DiagnosticCaretSuite extends FunSuite {
     checkUnused(
       patternVariable,
       "object A { Option(1) match { case Some(( /* c */ ¦a /* d */ )) => } }",
-      "object A { Option(1) match { case Some(( /* c */ a /* d */ )) => } }"
+      "object A { Option(1) match { case Some(( /* c */ _ /* d */ )) => } }"
     )
   }
 
   test("Scala 3 pattern variable in parens with comments") {
     check3(new RemoveUnused(), patternVariable)(
       "object A { Option(1) match { case Some(( /* c */ ¦a /* d */ )) => } }",
-      "object A { Option(1) match { case Some(( /* c */ a /* d */ )) => } }"
+      "object A { Option(1) match { case Some(( /* c */ _ /* d */ )) => } }"
     )
   }
 
@@ -576,7 +576,7 @@ class DiagnosticCaretSuite extends FunSuite {
   test("pattern variable in parens in a tuple pattern") {
     check(new RemoveUnused(), patternVariable)(
       "object A { (1, 2) match { case ((¦a), b) => b } }",
-      "object A { (1, 2) match { case (_, b) => b } }"
+      "object A { (1, 2) match { case ((_), b) => b } }"
     )
   }
 
@@ -590,35 +590,35 @@ class DiagnosticCaretSuite extends FunSuite {
   test("pattern variable in parens at the top") {
     check(new RemoveUnused(), patternVariable)(
       "object A { 1 match { case (¦a) => } }",
-      "object A { 1 match { case _ => } }"
+      "object A { 1 match { case (_) => } }"
     )
   }
 
   test("pattern variable in double parens at the top") {
     check(new RemoveUnused(), patternVariable)(
       "object A { 1 match { case ((¦a)) => } }",
-      "object A { 1 match { case _ => } }"
+      "object A { 1 match { case ((_)) => } }"
     )
   }
 
   test("pattern variable in double parens in an extractor") {
     check(new RemoveUnused(), patternVariable)(
       "object A { Option(1) match { case Some(((¦a))) => } }",
-      "object A { Option(1) match { case Some(_) => } }"
+      "object A { Option(1) match { case Some(((_))) => } }"
     )
   }
 
   test("pattern variable in parens with comments") {
     check(new RemoveUnused(), patternVariable)(
       "object A { Option(1) match { case Some(( /* c */ ¦a /* d */ )) => } }",
-      "object A { Option(1) match { case Some(( /* c */ a /* d */ )) => } }"
+      "object A { Option(1) match { case Some(( /* c */ _ /* d */ )) => } }"
     )
   }
 
   test("pattern variable in parens with a comment before the parens") {
     check(new RemoveUnused(), patternVariable)(
       "object A { Option(1) match { case Some(/* c */ (¦a)) => } }",
-      "object A { Option(1) match { case Some(/* c */ _) => } }"
+      "object A { Option(1) match { case Some(/* c */ (_)) => } }"
     )
   }
 
@@ -639,28 +639,28 @@ class DiagnosticCaretSuite extends FunSuite {
   test("pattern variable in parens in an extractor of two") {
     check(new RemoveUnused(), patternVariable)(
       "object A { (1, 2) match { case Tuple2((¦a), b) => b } }",
-      "object A { (1, 2) match { case Tuple2(_, b) => b } }"
+      "object A { (1, 2) match { case Tuple2((_), b) => b } }"
     )
   }
 
   test("pattern variable in parens in an infix extractor") {
     check(new RemoveUnused(), patternVariable)(
       "object A { List(1) match { case (¦a) :: t => t } }",
-      "object A { List(1) match { case _ :: t => t } }"
+      "object A { List(1) match { case (_) :: t => t } }"
     )
   }
 
   test("pattern variable in parens bound to a pattern variable") {
     check(new RemoveUnused(), patternVariable)(
       "object A { 1 match { case a @ (¦b) => a } }",
-      "object A { 1 match { case a @ _ => a } }"
+      "object A { 1 match { case a @ (_) => a } }"
     )
   }
 
   test("bound pattern variable in parens") {
     check(new RemoveUnused(), patternVariable)(
       "object A { 1 match { case (¦a @ 1) => } }",
-      "object A { 1 match { case (_ @ 1) => } }"
+      "object A { 1 match { case 1 => } }"
     )
   }
 
@@ -668,7 +668,7 @@ class DiagnosticCaretSuite extends FunSuite {
     checkUnused(
       patternVariable,
       "object A { (1, (2, 3)) match { case ¦t @ (i, ¦v @ (_, _)) => i } }",
-      "object A { (1, (2, 3)) match { case _ @ (i, _ @ (_, _)) => i } }"
+      "object A { (1, (2, 3)) match { case (i, (_, _)) => i } }"
     )
   }
 
@@ -676,49 +676,49 @@ class DiagnosticCaretSuite extends FunSuite {
     checkUnused(
       patternVariable,
       "object A { () match { case ¦u @ () => } }",
-      "object A { () match { case _ @ () => } }"
+      "object A { () match { case () => } }"
     )
   }
 
   test("bound typed pattern in parens in an infix extractor") {
     check(new RemoveUnused(), patternVariable)(
       "object A { List(1) match { case (¦a @ (_: Int)) :: t => t } }",
-      "object A { List(1) match { case (_ @ (_: Int)) :: t => t } }"
+      "object A { List(1) match { case (_: Int) :: t => t } }"
     )
   }
 
   test("bound alternative pattern in an infix extractor") {
     check(new RemoveUnused(), patternVariable)(
       "object A { List(1) match { case ¦a @ (1 | 2) :: Nil => } }",
-      "object A { List(1) match { case _ @ (1 | 2) :: Nil => } }"
+      "object A { List(1) match { case (1 | 2) :: Nil => } }"
     )
   }
 
   test("bound typed pattern in an infix extractor") {
     check(new RemoveUnused(), patternVariable)(
       "object A { List(1) match { case ¦a @ (_: Int) :: t => t } }",
-      "object A { List(1) match { case _ @ (_: Int) :: t => t } }"
+      "object A { List(1) match { case (_: Int) :: t => t } }"
     )
   }
 
   test("bound alternative pattern in an extractor") {
     check(new RemoveUnused(), patternVariable)(
       "object A { Option(1) match { case Some(¦a @ (1 | 2)) => } }",
-      "object A { Option(1) match { case Some(_ @ (1 | 2)) => } }"
+      "object A { Option(1) match { case Some((1 | 2)) => } }"
     )
   }
 
   test("pattern variable in parens in a partial function") {
     check(new RemoveUnused(), patternVariable)(
       "object A { f { case Some((¦a)) => } }",
-      "object A { f { case Some(_) => } }"
+      "object A { f { case Some((_)) => } }"
     )
   }
 
   test("pattern variable in parens in a catch") {
     check(new RemoveUnused(), patternVariable)(
       "object A { try 1 catch { case (¦e) => 2 } }",
-      "object A { try 1 catch { case _ => 2 } }"
+      "object A { try 1 catch { case (_) => 2 } }"
     )
   }
 
@@ -746,28 +746,28 @@ class DiagnosticCaretSuite extends FunSuite {
   test("pattern variable in parens with the range of the variable") {
     check(new RemoveUnused(), patternVariable, "xx")(
       "object A { Option(1) match { case Some((xx)) => } }",
-      "object A { Option(1) match { case Some(_) => } }"
+      "object A { Option(1) match { case Some((_)) => } }"
     )
   }
 
   test("pattern variable in parens with the range of the parens") {
     check(new RemoveUnused(), patternVariable, "(xx)")(
       "object A { Option(1) match { case Some((xx)) => } }",
-      "object A { Option(1) match { case Some(_) => } }"
+      "object A { Option(1) match { case Some((_)) => } }"
     )
   }
 
   test("pattern variable in parens at the top with the range of the variable") {
     check(new RemoveUnused(), patternVariable, "xx")(
       "object A { 1 match { case (xx) => } }",
-      "object A { 1 match { case _ => } }"
+      "object A { 1 match { case (_) => } }"
     )
   }
 
   test("pattern variable in parens at the top with the range of the parens") {
     check(new RemoveUnused(), patternVariable, "(xx)")(
       "object A { 1 match { case (xx) => } }",
-      "object A { 1 match { case _ => } }"
+      "object A { 1 match { case (_) => } }"
     )
   }
 
@@ -783,7 +783,7 @@ class DiagnosticCaretSuite extends FunSuite {
   ) {
     check(new RemoveUnused(), patternVariable, "xx @ (_: Int)")(
       "object A { List(1) match { case (xx @ (_: Int)) :: t => t } }",
-      "object A { List(1) match { case (xx @ (_: Int)) :: t => t } }"
+      "object A { List(1) match { case (_: Int) :: t => t } }"
     )
   }
 
@@ -799,7 +799,7 @@ class DiagnosticCaretSuite extends FunSuite {
   test("Scala 3 pattern variable in parens in a tuple pattern") {
     check3(new RemoveUnused(), patternVariable)(
       "object A { (1, 2) match { case ((¦a), b) => b } }",
-      "object A { (1, 2) match { case (_, b) => b } }"
+      "object A { (1, 2) match { case ((_), b) => b } }"
     )
   }
 
@@ -813,35 +813,35 @@ class DiagnosticCaretSuite extends FunSuite {
   test("Scala 3 pattern variable in parens at the top") {
     check3(new RemoveUnused(), patternVariable)(
       "object A { 1 match { case (¦a) => } }",
-      "object A { 1 match { case _ => } }"
+      "object A { 1 match { case (_) => } }"
     )
   }
 
   test("Scala 3 pattern variable in double parens at the top") {
     check3(new RemoveUnused(), patternVariable)(
       "object A { 1 match { case ((¦a)) => } }",
-      "object A { 1 match { case _ => } }"
+      "object A { 1 match { case ((_)) => } }"
     )
   }
 
   test("Scala 3 pattern variable in double parens in an extractor") {
     check3(new RemoveUnused(), patternVariable)(
       "object A { Option(1) match { case Some(((¦a))) => } }",
-      "object A { Option(1) match { case Some(_) => } }"
+      "object A { Option(1) match { case Some(((_))) => } }"
     )
   }
 
   test("Scala 3 pattern variable in parens with comments") {
     check3(new RemoveUnused(), patternVariable)(
       "object A { Option(1) match { case Some(( /* c */ ¦a /* d */ )) => } }",
-      "object A { Option(1) match { case Some(( /* c */ a /* d */ )) => } }"
+      "object A { Option(1) match { case Some(( /* c */ _ /* d */ )) => } }"
     )
   }
 
   test("Scala 3 pattern variable in parens with a comment before the parens") {
     check3(new RemoveUnused(), patternVariable)(
       "object A { Option(1) match { case Some(/* c */ (¦a)) => } }",
-      "object A { Option(1) match { case Some(/* c */ _) => } }"
+      "object A { Option(1) match { case Some(/* c */ (_)) => } }"
     )
   }
 
@@ -862,84 +862,84 @@ class DiagnosticCaretSuite extends FunSuite {
   test("Scala 3 pattern variable in parens in an extractor of two") {
     check3(new RemoveUnused(), patternVariable)(
       "object A { (1, 2) match { case Tuple2((¦a), b) => b } }",
-      "object A { (1, 2) match { case Tuple2(_, b) => b } }"
+      "object A { (1, 2) match { case Tuple2((_), b) => b } }"
     )
   }
 
   test("Scala 3 pattern variable in parens in an infix extractor") {
     check3(new RemoveUnused(), patternVariable)(
       "object A { List(1) match { case (¦a) :: t => t } }",
-      "object A { List(1) match { case _ :: t => t } }"
+      "object A { List(1) match { case (_) :: t => t } }"
     )
   }
 
   test("Scala 3 pattern variable in parens bound to a pattern variable") {
     check3(new RemoveUnused(), patternVariable)(
       "object A { 1 match { case a @ (¦b) => a } }",
-      "object A { 1 match { case a @ _ => a } }"
+      "object A { 1 match { case a @ (_) => a } }"
     )
   }
 
   test("Scala 3 bound pattern variable in parens") {
     check3(new RemoveUnused(), patternVariable)(
       "object A { 1 match { case (¦a @ 1) => } }",
-      "object A { 1 match { case (_ @ 1) => } }"
+      "object A { 1 match { case 1 => } }"
     )
   }
 
   test("Scala 3 bound tuple patterns") {
     check3(new RemoveUnused(), patternVariable)(
       "object A { (1, (2, 3)) match { case ¦t @ (i, ¦v @ (_, _)) => i } }",
-      "object A { (1, (2, 3)) match { case _ @ (i, _ @ (_, _)) => i } }"
+      "object A { (1, (2, 3)) match { case (i, (_, _)) => i } }"
     )
   }
 
   test("Scala 3 bound unit pattern") {
     check3(new RemoveUnused(), patternVariable)(
       "object A { () match { case ¦u @ () => } }",
-      "object A { () match { case _ @ () => } }"
+      "object A { () match { case () => } }"
     )
   }
 
   test("Scala 3 bound typed pattern in parens in an infix extractor") {
     check3(new RemoveUnused(), patternVariable)(
       "object A { List(1) match { case (¦a @ (_: Int)) :: t => t } }",
-      "object A { List(1) match { case (_ @ (_: Int)) :: t => t } }"
+      "object A { List(1) match { case (_: Int) :: t => t } }"
     )
   }
 
   test("Scala 3 bound alternative pattern in an infix extractor") {
     check3(new RemoveUnused(), patternVariable)(
       "object A { List(1) match { case ¦a @ (1 | 2) :: Nil => } }",
-      "object A { List(1) match { case _ @ (1 | 2) :: Nil => } }"
+      "object A { List(1) match { case (1 | 2) :: Nil => } }"
     )
   }
 
   test("Scala 3 bound typed pattern in an infix extractor") {
     check3(new RemoveUnused(), patternVariable)(
       "object A { List(1) match { case ¦a @ (_: Int) :: t => t } }",
-      "object A { List(1) match { case _ @ (_: Int) :: t => t } }"
+      "object A { List(1) match { case (_: Int) :: t => t } }"
     )
   }
 
   test("Scala 3 bound alternative pattern in an extractor") {
     check3(new RemoveUnused(), patternVariable)(
       "object A { Option(1) match { case Some(¦a @ (1 | 2)) => } }",
-      "object A { Option(1) match { case Some(_ @ (1 | 2)) => } }"
+      "object A { Option(1) match { case Some((1 | 2)) => } }"
     )
   }
 
   test("Scala 3 pattern variable in parens in a partial function") {
     check3(new RemoveUnused(), patternVariable)(
       "object A { f { case Some((¦a)) => } }",
-      "object A { f { case Some(_) => } }"
+      "object A { f { case Some((_)) => } }"
     )
   }
 
   test("Scala 3 pattern variable in parens in a catch") {
     check3(new RemoveUnused(), patternVariable)(
       "object A { try 1 catch { case (¦e) => 2 } }",
-      "object A { try 1 catch { case _ => 2 } }"
+      "object A { try 1 catch { case (_) => 2 } }"
     )
   }
 
@@ -967,14 +967,14 @@ class DiagnosticCaretSuite extends FunSuite {
   test("Scala 3 pattern variable in parens with the range of the variable") {
     check3(new RemoveUnused(), patternVariable, "xx")(
       "object A { Option(1) match { case Some((xx)) => } }",
-      "object A { Option(1) match { case Some(_) => } }"
+      "object A { Option(1) match { case Some((_)) => } }"
     )
   }
 
   test("Scala 3 pattern variable in parens with the range of the parens") {
     check3(new RemoveUnused(), patternVariable, "(xx)")(
       "object A { Option(1) match { case Some((xx)) => } }",
-      "object A { Option(1) match { case Some(_) => } }"
+      "object A { Option(1) match { case Some((_)) => } }"
     )
   }
 
@@ -983,7 +983,7 @@ class DiagnosticCaretSuite extends FunSuite {
   ) {
     check3(new RemoveUnused(), patternVariable, "xx")(
       "object A { 1 match { case (xx) => } }",
-      "object A { 1 match { case _ => } }"
+      "object A { 1 match { case (_) => } }"
     )
   }
 
@@ -992,7 +992,7 @@ class DiagnosticCaretSuite extends FunSuite {
   ) {
     check3(new RemoveUnused(), patternVariable, "(xx)")(
       "object A { 1 match { case (xx) => } }",
-      "object A { 1 match { case _ => } }"
+      "object A { 1 match { case (_) => } }"
     )
   }
 
@@ -1010,7 +1010,7 @@ class DiagnosticCaretSuite extends FunSuite {
   ) {
     check3(new RemoveUnused(), patternVariable, "xx @ (_: Int)")(
       "object A { List(1) match { case (xx @ (_: Int)) :: t => t } }",
-      "object A { List(1) match { case (xx @ (_: Int)) :: t => t } }"
+      "object A { List(1) match { case (_: Int) :: t => t } }"
     )
   }
 
@@ -1578,14 +1578,14 @@ class DiagnosticCaretSuite extends FunSuite {
   test("tupled arguments") {
     check(new NoAutoTupling(), tupling)(
       "object A { a¦(1, 2) }",
-      "object A { a(1, 2) }"
+      "object A { a((1, 2)) }"
     )
   }
 
   test("tupled arguments in two clauses") {
     check(new NoAutoTupling(), tupling)(
       "object A { a¦(1, 2)¦(3, 4) }",
-      "object A { a(1, 2)(3, 4) }"
+      "object A { a((1, 2))((3, 4)) }"
     )
   }
 
@@ -1613,7 +1613,7 @@ class DiagnosticCaretSuite extends FunSuite {
   test("tupled arguments of a selected method") {
     check(new NoAutoTupling(), tupling)(
       "object A { a.b¦(1, 2) }",
-      "object A { a.b(1, 2) }"
+      "object A { a.b((1, 2)) }"
     )
   }
 
@@ -1629,7 +1629,7 @@ class DiagnosticCaretSuite extends FunSuite {
   test("tupled arguments with a type argument") {
     check(new NoAutoTupling(), tupling)(
       "object A { a[Int]¦(1, 2) }",
-      "object A { a[Int](1, 2) }"
+      "object A { a[Int]((1, 2)) }"
     )
   }
 
@@ -1645,7 +1645,7 @@ class DiagnosticCaretSuite extends FunSuite {
   test("tupled arguments with a block") {
     check(new NoAutoTupling(), tupling)(
       "object A { a¦(1, { 2 }) }",
-      "object A { a(1, { 2 }) }"
+      "object A { a((1, { 2 })) }"
     )
   }
 
@@ -1673,7 +1673,7 @@ class DiagnosticCaretSuite extends FunSuite {
   test("inserted unit") {
     check(new NoAutoTupling(), unitInsertion)(
       "object A { a¦() }",
-      "object A { a() }"
+      "object A { a(()) }"
     )
   }
 
@@ -1687,7 +1687,7 @@ class DiagnosticCaretSuite extends FunSuite {
   test("inserted unit of a selected method") {
     check(new NoAutoTupling(), unitInsertion)(
       "object A { a.b¦() }",
-      "object A { a.b() }"
+      "object A { a.b(()) }"
     )
   }
 

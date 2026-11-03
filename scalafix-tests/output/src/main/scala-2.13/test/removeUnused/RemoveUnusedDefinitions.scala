@@ -60,7 +60,7 @@ class RemoveUnusedDefinitions {
     case Some(_) => ()
     case Some(_: Int) => ()
     case Some(1) => ()
-    case Some(( /* c */ parens /* d */ )) => ()
+    case Some(( /* c */ _ /* d */ )) => ()
     case _ => ()
   }
 }

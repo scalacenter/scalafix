@@ -59,8 +59,8 @@ class RemoveUnusedDefinitions {
   def patterns(x: Option[Int]): Unit = x match {
     case Some(_) => ()
     case Some(_: Int) => ()
-    case Some(_ @ 1) => ()
-    case Some(( /* c */ parens /* d */ )) => ()
+    case Some(1) => ()
+    case Some(( /* c */ _ /* d */ )) => ()
     case _ => ()
   }
 }

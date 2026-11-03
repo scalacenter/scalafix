@@ -6,4 +6,6 @@ object UnusedParams {
   val fs = (used: String, _: Long) => println(used)
   def g(x: String => Unit): Unit = ???
   g{implicit string => println("g")}
+  g{implicit typed: String => println("g")}
+  g{implicit /* a */ commented /* b */ : String => println("g")}
 }
