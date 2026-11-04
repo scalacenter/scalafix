@@ -117,7 +117,7 @@ object PatchInternals {
           importPatches
         )(index)
 
-      underlying(result.asPatch)
+      underlying(result)
         .collect {
           case x: TokenPatch => x
           case els =>

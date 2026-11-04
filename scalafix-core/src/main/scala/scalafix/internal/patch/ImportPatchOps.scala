@@ -66,7 +66,7 @@ object ImportPatchOps {
   private[scalafix] def superNaiveImportPatchToTokenPatchConverter(
       ctx: RuleCtx,
       importPatches: Seq[ImportPatch]
-  )(implicit index: SemanticdbIndex): Iterable[Patch] = {
+  )(implicit index: SemanticdbIndex): Patch = {
     val allImports = ctx.tree.collect { case i: Import => i }
     val allImporters = allImports.flatMap(_.importers)
     lazy val allGlobalImportersSyntax = (for {
@@ -150,10 +150,11 @@ object ImportPatchOps {
           }
           .toList
       else importersToAdd
-    val extraPatches =
-      grouped
-        .sortBy(_.ref.syntax)
-        .map(is => ctx.addRight(editToken, s"\nimport ${is.syntax}"))
+    val sb = new StringBuilder
+    grouped.sortBy(_.ref.syntax).foreach { is =>
+      sb.append("\nimport ").append(is.syntax)
+    }
+    val extraPatches = ctx.addRight(editToken, sb.result())
     val isRemovedImporter =
       allImporters.iterator
         .filter(_.importees.forall(isRemovedImportee))
@@ -167,7 +168,7 @@ object ImportPatchOps {
         .map(ctx.removeToken)
         .asPatch
     }
-    val curlyBraceRemoves = allImporters.map { importer =>
+    val removeCurlyBraces = { (importer: Importer) =>
       val keptImportees = importer.importees.filterNot(isRemovedImportee)
       val hasRemovedImportee = importer.importees.exists(isRemovedImportee)
       keptImportees match {
@@ -236,7 +237,7 @@ object ImportPatchOps {
       Patch.removeTokens(toRemove.tokens) ++ leadingComma ++ trailingComma
     }
 
-    val importsRemoves = isRemovedImport.map { i =>
+    val removeImports = { (i: Import) =>
       val tokens = i.tokens
       val eolidx = tokens.rskipWideIf(_.is[Token.HSpace], -1)
       val begidx = tokens.getWideOpt(eolidx) match {
@@ -246,11 +247,11 @@ object ImportPatchOps {
       ctx.removeTokens(tokens.sliceWide(begidx, tokens.length))
     }
 
-    curlyBraceRemoves ++
-      extraPatches ++
-      isRemovedImportee.map(remove) ++
-      isRemovedImporter.map(remove) ++
-      importsRemoves
+    extraPatches
+      .concat(allImporters)(removeCurlyBraces)
+      .concat(isRemovedImportee)(remove)
+      .concat(isRemovedImporter)(remove)
+      .concat(isRemovedImport)(removeImports)
   }
 
   private def removeUpToFirstComma(tokens: Iterable[Token]): List[Patch] = {
