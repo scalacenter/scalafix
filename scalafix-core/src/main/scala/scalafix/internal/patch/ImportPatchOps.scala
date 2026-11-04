@@ -150,9 +150,11 @@ object ImportPatchOps {
           }
           .toList
       else importersToAdd
+    // print an added import in the dialect of the file
+    val dialect = ctx.tree.origin.dialectOpt
     val sb = new StringBuilder
     grouped.sortBy(_.ref.syntax).foreach { is =>
-      sb.append("\nimport ").append(is.syntax)
+      sb.append("\nimport ").append(dialect.fold(is.syntax)(is.printSyntaxFor))
     }
     val extraPatches = ctx.addRight(editToken, sb.result())
     val isRemovedImporter =

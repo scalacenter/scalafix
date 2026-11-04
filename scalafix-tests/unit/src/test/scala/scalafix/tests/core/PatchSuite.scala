@@ -152,7 +152,7 @@ class PatchSuite extends AbstractSyntacticRuleSuite {
       |object A
       |""".stripMargin,
     """import a.b
-      |import scala.collection.{mutable => _}
+      |import scala.collection.mutable as _
       |
       |object A
       |""".stripMargin
@@ -167,8 +167,8 @@ class PatchSuite extends AbstractSyntacticRuleSuite {
       |object A
       |""".stripMargin,
     """import a.b
-      |import scala.collection.{mutable => m}
-      |import scala.util._
+      |import scala.collection.mutable as m
+      |import scala.util.*
       |
       |object A
       |""".stripMargin
