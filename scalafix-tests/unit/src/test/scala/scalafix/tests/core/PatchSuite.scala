@@ -9,8 +9,10 @@ import scala.meta.internal.prettyprinters.TreeSyntax
 import scala.meta.tokens.Token.Ident
 
 import scalafix.XtensionSeqPatch
+import scalafix.internal.config.ScalaVersion
 import scalafix.internal.patch.PatchInternals
 import scalafix.internal.tests.utils.SkipWindows
+import scalafix.internal.v1.Rules
 import scalafix.patch.Patch
 import scalafix.patch.Patch.internal.Add
 import scalafix.patch.Patch.internal.AtomicPatch
@@ -111,6 +113,78 @@ class PatchSuite extends AbstractSyntacticRuleSuite {
       |""".stripMargin,
     """import a.b
       |import scala.collection.{mutable => _}
+      |
+      |object A
+      |""".stripMargin
+  )
+
+  private def checkFor(
+      scalaVersion: ScalaVersion,
+      rule: SyntacticRule,
+      name: String,
+      original: String,
+      expected: String
+  ): Unit =
+    test(name) {
+      val input = Input.String(original)
+      val doc = SyntacticDocument.fromInput(input, scalaVersion)
+      val obtained = Rules(List(rule)).syntacticPatch(doc, suppress = true)
+      assertNoDiff(obtained.fixed, expected)
+    }
+
+  case object AddGlobalImporters extends SyntacticRule("addGlobalImporters") {
+    override def fix(implicit doc: SyntacticDocument): Patch = {
+      val collection = Term.Select(Term.Name("scala"), Term.Name("collection"))
+      val util = Term.Select(Term.Name("scala"), Term.Name("util"))
+      val mutable = Name.Indeterminate("mutable")
+      val rename = Importee.Rename(mutable, Name.Indeterminate("m"))
+      Patch.addGlobalImport(Importer(collection, List(rename))) +
+        Patch.addGlobalImport(Importer(util, List(Importee.Wildcard())))
+    }
+  }
+
+  checkFor(
+    ScalaVersion.scala3,
+    AddGlobalImporter,
+    "AddGlobalImporter in a Scala 3 file",
+    """import a.b
+      |
+      |object A
+      |""".stripMargin,
+    """import a.b
+      |import scala.collection.{mutable => _}
+      |
+      |object A
+      |""".stripMargin
+  )
+
+  checkFor(
+    ScalaVersion.scala3,
+    AddGlobalImporters,
+    "AddGlobalImporters in a Scala 3 file",
+    """import a.b
+      |
+      |object A
+      |""".stripMargin,
+    """import a.b
+      |import scala.collection.{mutable => m}
+      |import scala.util._
+      |
+      |object A
+      |""".stripMargin
+  )
+
+  checkFor(
+    ScalaVersion.scala2,
+    AddGlobalImporters,
+    "AddGlobalImporters in a Scala 2 file",
+    """import a.b
+      |
+      |object A
+      |""".stripMargin,
+    """import a.b
+      |import scala.collection.{mutable => m}
+      |import scala.util._
       |
       |object A
       |""".stripMargin
