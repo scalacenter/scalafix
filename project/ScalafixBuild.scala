@@ -32,12 +32,21 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     // https://github.com/scalameta/scalameta/issues/2485
     lazy val coreScalaVersions = scala2Versions
     lazy val cliScalaVersions = {
-      val unsupportedVersions: Set[String] =
-        if (Properties.isJavaAtLeast("25")) Set(scala212, scala35, scala36)
-        else if (!Properties.isJavaAtLeast("17"))
-          Set(scala38, scala39, scala3Next)
-        else Set.empty
-      (coreScalaVersions ++ scala3Versions).filterNot(unsupportedVersions)
+      def isSupportedOnRuntimeJavaVersion(scalaVersion: String): Boolean = {
+        import Properties.isJavaAtLeast
+
+        val majorMinor = CrossVersion.partialVersion(scalaVersion).get
+
+        majorMinor match {
+          case (3, minor) if minor >= 8 => isJavaAtLeast("17")
+          case (2, 12) | (3, 5) | (3, 6) => !isJavaAtLeast("25")
+          case (3, 7) => !isJavaAtLeast("26")
+          case _ => true
+        }
+      }
+
+      (coreScalaVersions ++ scala3Versions)
+        .filter(isSupportedOnRuntimeJavaVersion)
     }
     lazy val cliScalaVersionsWithTargets: Seq[(String, TargetAxis)] =
       cliScalaVersions.map(sv => (sv, TargetAxis(sv))) ++
