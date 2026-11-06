@@ -646,4 +646,18 @@ class ScalafixArgumentsSuite extends AnyFunSuite with DiffAssertions {
     assert(!rules.head.isExperimental)
   }
 
+  fsTest("repeated --classpath in withParsedArguments")() { case (api, cwd) =>
+    val outDir = cwd.resolve("out")
+    val parsedArgs = api
+      .withClasspath(java.util.Collections.emptyList())
+      .withParsedArguments(
+        (Seq("--rules", "RemoveUnused", "--classpath", outDir.toString) ++
+          scalaLibrary.flatMap(p => Seq("--classpath", p.toString))).asJava
+      )
+    val eval = parsedArgs.evaluate()
+    assert(eval.isSuccessful)
+    val fileEvaluation = eval.getFileEvaluations.head
+    assert(fileEvaluation.isSuccessful)
+  }
+
 }

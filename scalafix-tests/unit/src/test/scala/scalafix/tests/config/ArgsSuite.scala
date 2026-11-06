@@ -3,6 +3,7 @@ package scalafix.tests.config
 import scala.meta.io.AbsolutePath
 
 import metaconfig.Conf
+import metaconfig.ConfDecoder
 import metaconfig.Configured
 import metaconfig.internal.ConfGet
 import metaconfig.typesafeconfig.typesafeConfigMetaconfigParser
@@ -90,5 +91,62 @@ class ArgsSuite extends munit.FunSuite {
     )
     val classpath = args.validatedClasspath
     assert(classpath.entries.contains(AbsolutePath(targetRootPath)))
+  }
+
+  test("repeated --classpath arguments are accumulated") {
+    val base = Args.default
+    implicit val decoder: ConfDecoder[Args] = Args.decoder(base)
+    val parsed = Conf
+      .parseCliArgs[Args](
+        List("--classpath", "a.jar", "--classpath", "b.jar")
+      )
+      .andThen(_.as[Args])
+      .get
+
+    val expected = List(
+      base.cwd.resolve("a.jar"),
+      base.cwd.resolve("b.jar")
+    )
+    assertEquals(parsed.classpath.entries, expected)
+  }
+
+  test("repeated --classpath arguments with path separator are accumulated") {
+    val base = Args.default
+    implicit val decoder: ConfDecoder[Args] = Args.decoder(base)
+    val parsed = Conf
+      .parseCliArgs[Args](
+        List(
+          "--classpath",
+          s"a.jar${java.io.File.pathSeparator}b.jar",
+          "--classpath",
+          "c.jar"
+        )
+      )
+      .andThen(_.as[Args])
+      .get
+
+    val expected = List(
+      base.cwd.resolve("a.jar"),
+      base.cwd.resolve("b.jar"),
+      base.cwd.resolve("c.jar")
+    )
+    assertEquals(parsed.classpath.entries, expected)
+  }
+
+  test("repeated --tool-classpath arguments are accumulated") {
+    val base = Args.default
+    implicit val decoder: ConfDecoder[Args] = Args.decoder(base)
+    val parsed = Conf
+      .parseCliArgs[Args](
+        List("--tool-classpath", "t1.jar", "--tool-classpath", "t2.jar")
+      )
+      .andThen(_.as[Args])
+      .get
+
+    val expected = List(
+      base.cwd.resolve("t1.jar").toNIO.toUri.toURL,
+      base.cwd.resolve("t2.jar").toNIO.toUri.toURL
+    )
+    assertEquals(parsed.toolClasspath.getURLs.toList, expected)
   }
 }
