@@ -44,7 +44,7 @@ case object DisableSyntaxBase {
 
   throw new Exception("ok") // assert: DisableSyntax.throw
 
-  "semicolon"; /* assert: DisableSyntax.noSemicolons
+  "semicolon"; /* assert: DisableSyntax.semicolons
              ^
   semicolons are disabled */
 
@@ -64,7 +64,7 @@ Numbers (5 in this instance) should always have a named parameter attached, or b
 
   val bar = 1 // scalafix:ok
 
-  override def finalize(): Unit = println("exit") // assert: DisableSyntax.noFinalize
+  override def finalize(): Unit = println("exit") // assert: DisableSyntax.finalize
 
   val Right(notFound) = 1.asInstanceOf[Either[String, String]]
 

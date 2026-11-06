@@ -5,7 +5,7 @@ DisableSyntax.noTabs = true
 package test.disableSyntax
 
 object NoTabs {
-	             /* assert: DisableSyntax.noTabs
+	             /* assert: DisableSyntax.tabs
 ^
 tabs are disabled */
 }
