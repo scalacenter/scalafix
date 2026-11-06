@@ -18,3 +18,13 @@ object QuotedIdent {
     object Other
   }
 }
+
+object DollarIdent {
+  val `a$b`: Int = 3
+  val plain: Int = 4
+}
+
+object StarIdent {
+  object *
+  val plain: Int = 5
+}

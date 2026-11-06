@@ -16,4 +16,10 @@ object Implicits {
     implicit def longImplicit: Long = ???
     implicit def floatImplicit: Float = ???
   }
+
+  object d {
+    implicit class IntOps(private val self: Int) {
+      def incremented: Int = self + 1
+    }
+  }
 }
