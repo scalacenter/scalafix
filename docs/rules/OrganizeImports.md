@@ -965,11 +965,11 @@ import pekko.annotation.ApiMayChange
 > the prerequisite `import org.apache.pekko` in the wildcard group. The
 > resulting order fails to compile.
 
-**Migration note for the next release:** An explicit `groupSeparately` list
-now controls relative imports as well. Add `Relative` to an existing list
-to preserve the previous behavior. For example, change
-`groupSeparately = [ByTypeGivens]` to
-`groupSeparately = [Relative, ByTypeGivens]`.
+**Migration note**: `Relative` was introduced in v0.14.10 as a way to opt out
+from the historical behavior. As a result, configuration files crafted before
+should add it explicitly to preserve the (safe) behavior. For example, change
+`groupSeparately = [ByNameImplicits, ByTypeGivens]` to
+`groupSeparately = [Relative, ByNameImplicits, ByTypeGivens]`.
 
 #### `ByNameImplicits`
 
