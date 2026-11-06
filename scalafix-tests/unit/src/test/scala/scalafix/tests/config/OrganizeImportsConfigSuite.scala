@@ -4,10 +4,27 @@ import metaconfig.Conf
 import metaconfig.Configured
 import metaconfig.typesafeconfig._
 import org.scalatest.funsuite.AnyFunSuite
+import scalafix.internal.rule.GroupSeparately
 import scalafix.internal.rule.OrganizeImports
+import scalafix.internal.rule.OrganizeImportsConfig
 import scalafix.v1.Configuration
 
 class OrganizeImportsConfigSuite extends AnyFunSuite {
+
+  test("legacy implicit grouping preserves relative imports") {
+    for (flag <- List(true, false)) {
+      val conf = Conf
+        .parseString(
+          "test",
+          s"groupExplicitlyImportedImplicitsSeparately = $flag"
+        )
+        .get
+      val separate =
+        OrganizeImportsConfig.default.merge(conf).get.groupSeparately
+      assert(separate.contains(GroupSeparately.Relative))
+      assert(separate.contains(GroupSeparately.ByNameImplicits) == flag)
+    }
+  }
 
   test("OrganizeImports should fail when RemoveUnused.imports is enabled") {
     val rawConfig =

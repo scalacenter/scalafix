@@ -61,18 +61,20 @@ object TargetDialect {
 
 sealed trait GroupSeparately
 object GroupSeparately {
+  case object Relative extends GroupSeparately
   case object ByNameImplicits extends GroupSeparately
   case object ByTypeGivens extends GroupSeparately
 
   implicit val codec: ConfCodecEx[GroupSeparately] = OrganizeImportsConfig
-    .getCodecFrom(ByNameImplicits, ByTypeGivens)
+    .getCodecFrom(Relative, ByNameImplicits, ByTypeGivens)
 }
 
 final case class OrganizeImportsConfig(
     blankLines: BlankLines = BlankLines.Auto,
     coalesceToWildcardImportThreshold: Option[Int] = None,
     expandRelative: Boolean = false,
-    groupSeparately: Seq[GroupSeparately] = Seq(GroupSeparately.ByTypeGivens),
+    groupSeparately: Seq[GroupSeparately] =
+      Seq(GroupSeparately.Relative, GroupSeparately.ByTypeGivens),
     groupedImports: GroupedImports = GroupedImports.Explode,
     groups: Seq[String] = Seq(
       "*",
@@ -116,7 +118,9 @@ object OrganizeImportsConfig {
     val baseDecoder = generic.deriveDecoderEx(default).noTypos
     baseDecoder.withSectionRenames(
       annotation.SectionRename { case Conf.Bool(flag) =>
-        if (flag) Conf.Lst(Conf.Str("ByNameImplicits")) else Conf.Lst()
+        if (flag)
+          Conf.Lst(Conf.Str("Relative"), Conf.Str("ByNameImplicits"))
+        else Conf.Lst(Conf.Str("Relative"))
       }("groupExplicitlyImportedImplicitsSeparately", "groupSeparately")
     )
   }

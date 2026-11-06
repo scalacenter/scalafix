@@ -1,7 +1,7 @@
 /*
 rules = [OrganizeImports]
 OrganizeImports {
-  groupSeparately = [ByTypeGivens]
+  groupSeparately = [Relative, ByTypeGivens]
   groupedImports = AggressiveMerge
   removeUnused = false
 }
