@@ -336,41 +336,41 @@ inherited from supertypes.</p>
   }
 getClassMethods(<span class="hljs-type">Symbol</span>(<span class="hljs-string">"scala/Some#"</span>)).take(<span class="hljs-number">5</span>)
 <span class="hljs-comment">// res29: Set[SymbolInformation] = Set(</span>
-<span class="hljs-comment">//   scala/Any#asInstanceOf(). =&gt; final method asInstanceOf[A](): A,</span>
+<span class="hljs-comment">//   scala/Option#withFilter(). =&gt; @inline final method withFilter(p: Function1[A, Boolean]): WithFilter,</span>
 <span class="hljs-comment">//   scala/Any#hashCode(). =&gt; abstract method hashCode(): Int,</span>
-<span class="hljs-comment">//   scala/Any#isInstanceOf(). =&gt; final method isInstanceOf[A](): Boolean,</span>
-<span class="hljs-comment">//   scala/Any#getClass(). =&gt; final method getClass(): Class,</span>
-<span class="hljs-comment">//   scala/Option#contains(). =&gt; final method contains[A1 &gt;: A](elem: A1): Boolean</span>
+<span class="hljs-comment">//   scala/Equals#canEqual(). =&gt; abstract method canEqual(that: Any): Boolean,</span>
+<span class="hljs-comment">//   scala/Product#productElementName(). =&gt; method productElementName(n: Int): String,</span>
+<span class="hljs-comment">//   scala/Any#asInstanceOf(). =&gt; final method asInstanceOf[A](): A</span>
 <span class="hljs-comment">// )</span>
 getClassMethods(<span class="hljs-type">Symbol</span>(<span class="hljs-string">"java/lang/String#"</span>)).take(<span class="hljs-number">5</span>)
 <span class="hljs-comment">// res30: Set[SymbolInformation] = Set(</span>
-<span class="hljs-comment">//   java/lang/String#describeConstable(). =&gt; method describeConstable(): Optional[String],</span>
-<span class="hljs-comment">//   java/lang/String#endsWith(). =&gt; method endsWith(param0: String): Boolean,</span>
-<span class="hljs-comment">//   java/lang/String#replace(). =&gt; method replace(param0: Char, param1: Char): String,</span>
-<span class="hljs-comment">//   java/lang/String#regionMatches(+1). =&gt; method regionMatches(param0: Boolean, param1: Int, param2: String, param3: Int, param4: Int): Boolean,</span>
-<span class="hljs-comment">//   java/lang/String#toLowerCase(). =&gt; method toLowerCase(param0: Locale): String</span>
+<span class="hljs-comment">//   java/lang/Object#notifyAll(). =&gt; final method notifyAll(): Unit,</span>
+<span class="hljs-comment">//   java/lang/Object#clone(). =&gt; protected method clone(): Object,</span>
+<span class="hljs-comment">//   java/lang/String#format(). =&gt; static method format(param0: String, param1: Object*): String,</span>
+<span class="hljs-comment">//   java/lang/String#valueOf(+5). =&gt; static method valueOf(param0: Int): String,</span>
+<span class="hljs-comment">//   java/lang/Object#hashCode(). =&gt; method hashCode(): Int</span>
 <span class="hljs-comment">// )</span>
 getClassMethods(<span class="hljs-type">Symbol</span>(<span class="hljs-string">"scala/collection/immutable/List#"</span>)).take(<span class="hljs-number">5</span>)
 <span class="hljs-comment">// res31: Set[SymbolInformation] = Set(</span>
-<span class="hljs-comment">//   scala/collection/SeqOps#combinations(). =&gt; method combinations(n: Int): Iterator[C],</span>
-<span class="hljs-comment">//   scala/collection/IterableOnceOps#foreach(). =&gt; method foreach[U](f: Function1[A, U]): Unit,</span>
-<span class="hljs-comment">//   scala/collection/IterableOnceOps#`:\`(). =&gt; @deprecated @inline final method :\[B](z: B)(op: Function2[A, B, B]): B,</span>
-<span class="hljs-comment">//   scala/collection/IterableOps#inits(). =&gt; method inits: Iterator[C],</span>
-<span class="hljs-comment">//   scala/AnyRef#synchronized(). =&gt; final method synchronized[T](body: T): T</span>
+<span class="hljs-comment">//   scala/collection/IterableOnceOps#reduceLeftOptionIterator(). =&gt; private final method reduceLeftOptionIterator[B &gt;: A](op: Function2[B, A, B]): Option[B],</span>
+<span class="hljs-comment">//   scala/collection/IterableOnceOps#flatten(). =&gt; abstract method flatten[B](implicit asIterable: Function1[A, IterableOnce[B]]): CC[B],</span>
+<span class="hljs-comment">//   scala/collection/IterableOps#toTraversable(). =&gt; @deprecated final method toTraversable: Traversable[A],</span>
+<span class="hljs-comment">//   scala/collection/IterableOnceOps#minOption(). =&gt; method minOption[B &gt;: A](implicit ord: Ordering[B]): Option[A],</span>
+<span class="hljs-comment">//   scala/Any#asInstanceOf(). =&gt; final method asInstanceOf[A](): A</span>
 <span class="hljs-comment">// )</span>
 </code></pre>
 <p>For Java methods, use <code>SymbolInformation.isStatic</code> to separate static methods
 from non-static methods.</p>
 <pre><code class="hljs css language-scala">getClassMethods(<span class="hljs-type">Symbol</span>(<span class="hljs-string">"java/lang/String#"</span>)).filter(_.isStatic).take(<span class="hljs-number">3</span>)
 <span class="hljs-comment">// res32: Set[SymbolInformation] = Set(</span>
-<span class="hljs-comment">//   java/lang/String#decode3(). =&gt; private static method decode3(param0: Int, param1: Int, param2: Int): Char,</span>
-<span class="hljs-comment">//   java/lang/String#valueOf(+5). =&gt; static method valueOf(param0: Int): String,</span>
-<span class="hljs-comment">//   java/lang/String#valueOf(+3). =&gt; static method valueOf(param0: Boolean): String</span>
+<span class="hljs-comment">//   java/lang/String#isMalformed4_2(). =&gt; private static method isMalformed4_2(param0: Int, param1: Int): Boolean,</span>
+<span class="hljs-comment">//   java/lang/String#getBytesNoRepl(). =&gt; private[lang] static method getBytesNoRepl(param0: String, param1: Charset): Array[Byte],</span>
+<span class="hljs-comment">//   java/lang/String#decode2(). =&gt; private static method decode2(param0: Int, param1: Int): Char</span>
 <span class="hljs-comment">// )</span>
 getClassMethods(<span class="hljs-type">Symbol</span>(<span class="hljs-string">"java/lang/String#"</span>)).filter(!_.isStatic).take(<span class="hljs-number">3</span>)
 <span class="hljs-comment">// res33: Set[SymbolInformation] = Set(</span>
-<span class="hljs-comment">//   java/lang/Object#equals(). =&gt; method equals(param0: Object): Boolean,</span>
-<span class="hljs-comment">//   java/lang/CharSequence#isEmpty(). =&gt; default method isEmpty(): Boolean,</span>
+<span class="hljs-comment">//   java/lang/String#intern(). =&gt; method intern(): String,</span>
+<span class="hljs-comment">//   java/lang/Object#notify(). =&gt; final method notify(): Unit,</span>
 <span class="hljs-comment">//   java/lang/Object#wait(+2). =&gt; final method wait(param0: Long, param1: Int): Unit</span>
 <span class="hljs-comment">// )</span>
 </code></pre>
@@ -484,9 +484,9 @@ getMethodOverloads(<span class="hljs-type">Symbol</span>(<span class="hljs-strin
 <span class="hljs-comment">// )</span>
 getMethodOverloads(<span class="hljs-type">Symbol</span>(<span class="hljs-string">"java/io/PrintStream#"</span>), <span class="hljs-string">"print"</span>).take(<span class="hljs-number">3</span>)
 <span class="hljs-comment">// res47: Set[SymbolInformation] = Set(</span>
+<span class="hljs-comment">//   java/io/PrintStream#print(+8). =&gt; method print(param0: Object): Unit,</span>
 <span class="hljs-comment">//   java/io/PrintStream#print(+6). =&gt; method print(param0: Array[Char]): Unit,</span>
-<span class="hljs-comment">//   java/io/PrintStream#print(+3). =&gt; method print(param0: Long): Unit,</span>
-<span class="hljs-comment">//   java/io/PrintStream#print(+4). =&gt; method print(param0: Float): Unit</span>
+<span class="hljs-comment">//   java/io/PrintStream#print(+5). =&gt; method print(param0: Double): Unit</span>
 <span class="hljs-comment">// )</span>
 </code></pre>
 <p>Overloaded methods can be inherited from supertypes.</p>
