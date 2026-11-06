@@ -1,5 +1,6 @@
 package scalafix.internal.rule
 
+import scala.annotation.tailrec
 import scala.collection.mutable
 
 import scala.meta._
@@ -58,26 +59,26 @@ class RemoveUnused(config: RemoveUnusedConfig)
   }
 
   override def fix(implicit doc: SemanticDocument): Patch = {
-    val isUnusedTerm = mutable.Set.empty[Position]
-    val isUnusedImport = mutable.Set.empty[Position]
-    val isUnusedPattern = mutable.Set.empty[Position]
-    val isUnusedParam = mutable.Set.empty[Position]
+    val isUnusedTerm = mutable.LongMap.empty[Unit] // starts
+    val isUnusedImportee = new OrganizeImports.UnusedImporteePositions(
+      if (config.imports) doc.diagnostics else Iterator.empty
+    )
+    val isUnusedPattern = mutable.LongMap.empty[Unit] // starts
+    val isUnusedParam = mutable.LongMap.empty[Unit] // starts
 
     val unusedPatterExpr =
       raw"^pattern var .* in (value|method) .* is never used".r
 
     doc.diagnostics.foreach { diagnostic =>
       val msg = diagnostic.message
-      if (config.imports && diagnostic.message.toLowerCase == "unused import") {
-        isUnusedImport += diagnostic.position
-      } else if (
+      if (
         config.privates &&
         (
           (msg.startsWith("private") && msg.endsWith("is never used")) ||
             msg == "unused private member"
         )
       ) {
-        isUnusedTerm += diagnostic.position
+        isUnusedTerm(diagnostic.position.start) = ()
       } else if (
         config.locals &&
         (
@@ -85,7 +86,7 @@ class RemoveUnused(config: RemoveUnusedConfig)
             msg == "unused local definition"
         )
       ) {
-        isUnusedTerm += diagnostic.position
+        isUnusedTerm(diagnostic.position.start) = ()
       } else if (
         config.patternvars &&
         (
@@ -93,7 +94,7 @@ class RemoveUnused(config: RemoveUnusedConfig)
             msg == "unused pattern variable"
         )
       ) {
-        isUnusedPattern += diagnostic.position
+        isUnusedPattern(diagnostic.position.start) = ()
       } else if (
         config.params &&
         (
@@ -101,78 +102,100 @@ class RemoveUnused(config: RemoveUnusedConfig)
             msg == "unused explicit parameter"
         )
       ) {
-        isUnusedParam += diagnostic.position
+        isUnusedParam(diagnostic.position.start) = ()
       }
     }
 
     if (
-      isUnusedImport.isEmpty && isUnusedTerm.isEmpty && isUnusedPattern.isEmpty && isUnusedParam.isEmpty
+      isUnusedImportee.isEmpty && isUnusedTerm.isEmpty && isUnusedPattern.isEmpty && isUnusedParam.isEmpty
     ) {
       // Optimization: don't traverse if there are no diagnostics to act on.
       Patch.empty
     } else {
-      def patchPatVarsIn(cases: List[Case]): Patch = {
-        def checkUnusedPatTree(t: Tree): Boolean =
-          isUnusedPattern(t.pos) || isUnusedPattern(posExclParens(t))
-        def patchPatTree: PartialFunction[Tree, Patch] = {
-          case v: Pat.Var if checkUnusedPatTree(v) =>
-            Patch.replaceTree(v, "_")
-          case t @ Pat.Typed(v: Pat.Var, _) if checkUnusedPatTree(t) =>
-            Patch.replaceTree(v, "_")
-          case b @ Pat.Bind(_, rhs) if checkUnusedPatTree(b) =>
-            val (heading, trailing) = surroundingTokens(b, rhs)
-            Patch.removeTokens(heading ++ trailing)
+      // a diagnostic may also start at a paren that wraps only the variable
+      def isUnusedPatVar(v: Pat.Var): Boolean =
+        isUnusedPattern.contains(v.name.pos.start) || {
+          val toks = v.name.tokens
+          @tailrec
+          def inParens(beg: Int, end: Int): Boolean = {
+            val lp = toks.rskipWideIf(_.is[Token.Trivia], beg)
+            val rp = toks.skipWideIf(_.is[Token.Trivia], end)
+            toks.getWideOrNull(lp) match {
+              case t: Token.LeftParen
+                  if toks.getWideOrNull(rp).isInstanceOf[Token.RightParen] =>
+                isUnusedPattern.contains(t.start) || inParens(lp - 1, rp + 1)
+              case _ => false
+            }
+          }
+          inParens(-1, toks.length)
         }
+
+      val patchPatTree: PartialFunction[Tree, Patch] = {
+        case v: Pat.Var if isUnusedPatVar(v) =>
+          v.parent match {
+            case Some(b: Pat.Bind) if b.lhs eq v =>
+              val (heading, trailing) = surroundingTokens(b, b.rhs)
+              Patch.removeTokens(heading ++ trailing)
+            case _ => Patch.replaceTree(v.name, "_")
+          }
+      }
+
+      val addParamPatch: (Patch, Term.Param) => Patch = (acc, param) =>
+        if (isUnusedParam.contains(param.name.pos.start)) {
+          // drop an untyped param whole, with its `implicit` prefix
+          if (param.decltpe.isEmpty) acc + Patch.replaceTree(param, "_")
+          else {
+            val patchImplicit = // drop `implicit` too: Scala 2.12 does not parse `implicit _: T`
+              param.mods.find(_.is[Mod.Implicit]) match {
+                case Some(mod) =>
+                  val tokens = mod.tokens
+                  val len = tokens.length
+                  val wsEnd = tokens.skipWideIf(_.is[Token.Whitespace], len)
+                  val hasComment =
+                    tokens.getWideOrNull(wsEnd).isInstanceOf[Token.HTrivia]
+                  val end = if (hasComment) len else wsEnd
+                  Patch.replaceToken(tokens.head, "(") + {
+                    if (end > 1) Patch.removeTokens(tokens.sliceWide(1, end))
+                    else Patch.empty
+                  } + Patch.addRight(param, ")")
+                case _ => Patch.empty
+              }
+            acc + Patch.replaceTree(param.name, "_") + patchImplicit
+          }
+        } else acc
+
+      def patchPatVarsIn(cases: List[Case]): Patch =
         cases
           .map { case Case(extract, _, _) => extract }
           .flatMap(_.collect(patchPatTree))
           .asPatch
           .atomic
-      }
 
-      def isUnusedImportee(importee: Importee): Boolean = {
-        val pos = importee match {
-          case Importee.Rename(from, _) => from.pos
-          case _ => importee.pos
-        }
-        isUnusedImport.exists { unused =>
-          unused.start <= pos.start && pos.end <= unused.end
-        }
-      }
+      def isUnusedDefn(defn: Tree, lhs: Tree): Boolean =
+        isUnusedTerm.contains(lhs.pos.start) ||
+          isUnusedTerm.contains(defn.pos.start)
 
       doc.tree.collect {
         case Importer(_, importees)
             if importees.forall(_.is[Importee.Unimport]) =>
           importees.map(Patch.removeImportee).asPatch
         case Importer(_, importees) =>
-          val hasUsedWildcard = importees.exists {
-            case i: Importee.Wildcard => !isUnusedImportee(i)
-            case _ => false
-          }
-          importees.collect {
-            case i @ Importee.Rename(_, to)
-                if isUnusedImportee(i) && hasUsedWildcard =>
+          val (unused, used) = importees.partition(isUnusedImportee)
+          val hasUsedWildcard = used.exists(_.is[Importee.Wildcard])
+          unused.map {
+            case i: Importee.Rename if hasUsedWildcard =>
               // Unimport the identifier instead of removing the importee since
               // unused renamed may still impact compilation by shadowing an identifier.
               // See https://github.com/scalacenter/scalafix/issues/614
-              Patch.replaceTree(to, "_").atomic
-            case i if isUnusedImportee(i) =>
+              Patch.replaceTree(i.rename, "_").atomic
+            case i =>
               Patch.removeImportee(i).atomic
           }.asPatch
-        case i: Defn if isUnusedTerm(i.pos) =>
+        case i: Defn.Def if isUnusedDefn(i, i.name) =>
           defnPatch(i).asPatch.atomic
-        case i: Defn.Def if isUnusedTerm(i.name.pos) =>
+        case i @ Defn.Val(_, List(pat), _, _) if isUnusedDefn(i, pat) =>
           defnPatch(i).asPatch.atomic
-        case i @ Defn.Val(_, List(pat), _, _) if isUnusedTerm.exists { p =>
-              p.start == pat.pos.start ||
-              p.start == i.pos.start // scala 2.12
-            } =>
-          defnPatch(i).asPatch.atomic
-        case i @ Defn.Var.Initial(_, List(pat), _, _) if isUnusedTerm.exists {
-              p =>
-                p.start == pat.pos.start ||
-                p.start == i.pos.start // scala 2.12
-            } =>
+        case i @ Defn.Var.Initial(_, List(pat), _, _) if isUnusedDefn(i, pat) =>
           defnPatch(i).asPatch.atomic
         case i: Term.Match =>
           patchPatVarsIn(i.casesBlock.cases)
@@ -180,33 +203,8 @@ class RemoveUnused(config: RemoveUnusedConfig)
           patchPatVarsIn(cases)
         case i: Term.Try =>
           patchPatVarsIn(i.cases)
-        case Term.Function.Initial(
-              List(param @ Term.Param(_, name, None, _)),
-              _
-            )
-            if isUnusedParam(
-              // diagnostic does not include the implicit prefix (supported only
-              // on 1-arity function without explicit type) captured in param,
-              // so use name instead
-              name.pos
-            ) =>
-          // drop the entire param so that the implicit prefix (if it exists) is removed
-          Patch.replaceTree(param, "_")
-        case Term.Function.Initial(
-              List(param @ Term.Param(_, name, Some(_), _)),
-              _
-            )
-            if isUnusedParam(
-              // diagnostic does not include the wrapping parens captured in single param
-              posExclParens(param)
-            ) =>
-          Patch.replaceTree(name, "_")
         case t: Term.Function =>
-          t.paramClause.values.collect {
-            case param @ Term.Param(_, name, _, _)
-                if isUnusedParam(param.pos) || isUnusedParam(name.pos) =>
-              Patch.replaceTree(name, "_")
-          }.asPatch
+          t.paramClause.values.foldLeft(Patch.empty)(addParamPatch)
       }.asPatch
     }
   }
@@ -269,16 +267,4 @@ class RemoveUnused(config: RemoveUnusedConfig)
 
       headingPatch + Patch.removeTokens(trailing)
     }
-
-  private def posExclParens(tree: Tree): Position = {
-    tree.pos match {
-      case Position.Range(input, start, end) =>
-        val tokens = tree.tokens
-        val leftCount = tokens.skipIf(_.isAny[Token.LeftParen, Token.Trivia])
-        val rightCount = tokens.length - 1 -
-          tokens.rskipIf(_.isAny[Token.RightParen, Token.Trivia])
-        Position.Range(input, start + leftCount, end - rightCount)
-      case other => other
-    }
-  }
 }

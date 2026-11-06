@@ -172,21 +172,19 @@ class OrganizeImports(
   ): Patch =
     Patch.fromIterable {
       imports flatMap (_.importers) flatMap { case Importer(_, importees) =>
-        val hasUsedWildcard = importees exists { i =>
-          i.is[Importee.Wildcard] && !unusedImporteePositions(i)
-        }
+        val (unused, used) = importees.partition(unusedImporteePositions)
+        val hasUsedWildcard = used.exists(_.is[Importee.Wildcard])
 
-        importees collect {
-          case i @ Importee.Rename(_, to)
-              if unusedImporteePositions(i) && hasUsedWildcard =>
+        unused map {
+          case i: Importee.Rename if hasUsedWildcard =>
             // Unimport the identifier instead of removing the importee since
             // unused renamed may still impact compilation by shadowing an
             // identifier.
             //
             // See https://github.com/scalacenter/scalafix/issues/614
-            Patch.replaceTree(to, "_").atomic
+            Patch.replaceTree(i.rename, "_").atomic
 
-          case i if unusedImporteePositions(i) =>
+          case i =>
             Patch.removeImportee(i).atomic
         }
       }
@@ -199,28 +197,28 @@ class OrganizeImports(
   ): Option[Importer] =
     if (!config.removeUnused) Some(importer)
     else {
-      val hasUsedWildcard = importer.importees exists { i =>
-        i.is[Importee.Wildcard] && !unusedImporteePositions(i)
+      val flagged = importer.importees.map(i => (i, unusedImporteePositions(i)))
+      val hasUsedWildcard = flagged.exists { case (i, unused) =>
+        !unused && i.is[Importee.Wildcard]
       }
 
       var rewritten = false
 
-      val noUnused = importer.importees.flatMap {
-        case i @ Importee.Rename(from, _)
-            if unusedImporteePositions(i) && hasUsedWildcard =>
+      val noUnused = flagged.flatMap {
+        case (i: Importee.Rename, true) if hasUsedWildcard =>
           // Unimport the identifier instead of removing the importee since
           // unused renamed may still impact compilation by shadowing an
           // identifier.
           //
           // See https://github.com/scalacenter/scalafix/issues/614
           rewritten = true
-          Importee.Unimport(from) :: Nil
+          Importee.Unimport(i.name) :: Nil
 
-        case i if unusedImporteePositions(i) =>
+        case (_, true) =>
           rewritten = true
           Nil
 
-        case i =>
+        case (i, _) =>
           i :: Nil
       }
 
@@ -958,12 +956,6 @@ object OrganizeImports {
     }
   }
 
-  private def positionOf(importee: Importee): Position =
-    importee match {
-      case Importee.Rename(from, _) => from.pos
-      case _ => importee.pos
-    }
-
   @tailrec private def collectImports(
       stats: List[Stat]
   ): (Seq[Import], Seq[Import]) = stats match {
@@ -1129,27 +1121,45 @@ object OrganizeImports {
     }
   }
 
-  class UnusedImporteePositions(implicit doc: SemanticDocument) {
-    private val positions: Seq[Position] =
-      doc.diagnostics.toSeq.collect {
-        // Scala2 says "Unused import" while Scala3 says "unused import"
-        case d if d.message.toLowerCase == "unused import" => d.position
-      }
+  class UnusedImporteePositions(diagnostics: Iterator[Diagnostic])
+      extends (Importee => Boolean) {
+    def this()(implicit doc: SemanticDocument) = this(doc.diagnostics)
 
-    /** Returns true if the importee was marked as unused by the compiler */
-    def apply(importee: Importee): Boolean = {
-      // positionOf returns the position of `bar` for `import foo.{bar => baz}`
-      // this position matches with the diagnostics from Scala2, but Scala3
-      // diagnostics has a position for `bar => baz`, which doesn't match
-      // with the return value of `positionOf`.
-      // We could adjust the behavior of `positionOf` based on Scala version,
-      // but this implementation just checking the unusedImporteePosition
-      // includes the importee pos, for simplicity.
-      val pos = positionOf(importee)
-      positions.exists { unused =>
-        unused.start <= pos.start && pos.end <= unused.end
+    private val lengthAt = mutable.LongMap.empty[Int] // start -> length
+    diagnostics.foreach { d =>
+      // Scala2 says "Unused import" while Scala3 says "unused import"
+      if (d.message.toLowerCase == "unused import") {
+        val pos = d.position
+        val beg = pos.start
+        val len = pos.end - beg
+        if (lengthAt.getOrElse(beg, -1) < len) lengthAt(beg) = len
       }
     }
+
+    private def isUnusedAt(tree: Tree, end: Int): Boolean = {
+      val beg = tree.pos.start
+      lengthAt.getOrElse(beg, -1) >= end - beg
+    }
+
+    def isEmpty: Boolean = lengthAt.isEmpty
+
+    /** Returns true if the importee was marked as unused by the compiler */
+    def apply(importee: Importee): Boolean =
+      lengthAt.contains(importee.pos.start) ||
+        // an older scalac 2.12 reports an unused `*` at its clause, or from `import`
+        lengthAt.nonEmpty && {
+          val end = importee.pos.end
+          importee.parent match {
+            case Some(p) =>
+              isUnusedAt(p, end) || {
+                p.parent match {
+                  case Some(pp) => isUnusedAt(pp, end)
+                  case _ => false
+                }
+              }
+            case _ => false
+          }
+        }
   }
 
   implicit private class SymbolExtension(symbol: Symbol) {

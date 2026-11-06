@@ -63,9 +63,9 @@ object ob {
     case _: String => ???
     case (_: Int) => ???
     case (_: Int, b) => println(b)
-    case _@A(_) => ???
+    case A(_) => ???
     case x :: (_, _) :: Nil => println(x)
-    case _ => ???
+    case ( /* c */ _ /* d */ ) => ???
   }
   try ??? catch {case _: Exception => ???}
 
@@ -386,6 +386,6 @@ class cl {
   }
 
   def f(v: (Int, (Boolean, String))): Int = v match {
-    case _ @ (i, _ @ (_, _)) => i
+    case (i, (_, _)) => i
   }
 }
