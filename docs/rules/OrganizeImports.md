@@ -936,10 +936,11 @@ When [`expandRelative`](#expandrelative) is `false`, place relative imports
 in the trailing order-preserving group. This is enabled by default because a
 relative import can depend on a preceding import.
 
-Omit `Relative` to group and sort relative imports by their resolved,
-fully qualified references. Their original relative spelling is retained in
-the output. For example, this configuration puts both imports in the same
-group without adding a blank line:
+Omit `Relative` to place relative imports in groups matched by their resolved,
+fully qualified references, and sort them according to `importsOrder`. Their
+original relative spelling is retained in the output. For example, this
+configuration puts both imports in the same group without adding a blank
+line:
 
 ```conf
 OrganizeImports {
@@ -954,11 +955,15 @@ import org.apache.pekko
 import pekko.annotation.ApiMayChange
 ```
 
-Take care when configuring groups: the resolved reference determines the
-group and sorting order, but it does not remove import dependencies. With
-`groups = ["scala.util.", "scala."]`, for example, `import util.Random` is
-moved before the prerequisite `import scala.util`, and the result fails to
-compile.
+> However, omitting `Relative` is unsafe unless your group and sorting
+> configuration preserves the ordering dependencies between imports. The
+> resolved reference is used to choose a group and sort relative imports; it
+> does not make a relative import independent of the imports needed to resolve
+> its qualifier. For example, with
+> `groups = ["org.apache.pekko.annotation.", "*"]`,
+> `import pekko.annotation.ApiMayChange` is placed in the first group, ahead of
+> the prerequisite `import org.apache.pekko` in the wildcard group. The
+> resulting order fails to compile.
 
 **Migration note for the next release:** An explicit `groupSeparately` list
 now controls relative imports as well. Add `Relative` to an existing list
