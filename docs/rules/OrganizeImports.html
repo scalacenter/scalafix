@@ -125,7 +125,10 @@ with <code>OrganizeImports</code> twice.</p>
 <pre><code class="hljs"><span class="hljs-attr">OrganizeImports.blankLines</span> = Auto
 <span class="hljs-attr">OrganizeImports.coalesceToWildcardImportThreshold</span> = None
 <span class="hljs-attr">OrganizeImports.expandRelative</span> = <span class="hljs-literal">false</span>
-<span class="hljs-attr">OrganizeImports.groupSeparately</span> = [ByTypeGivens]
+<span class="hljs-attr">OrganizeImports.groupSeparately</span> = [
+  Relative,
+  ByTypeGivens
+]
 <span class="hljs-attr">OrganizeImports.groupedImports</span> = Explode
 <span class="hljs-attr">OrganizeImports.groups</span> = [
   *,
@@ -511,8 +514,8 @@ and <code>scala.</code> imports into different two groups properly:</p>
 order-preserving import group may appear after all the configured import
 groups when:</p>
 <ol>
-<li><p>The <code>expandRelative</code> option is set to <code>false</code> and there are relative
-imports.</p></li>
+<li><p>The <code>expandRelative</code> option is set to <code>false</code>, <code>groupSeparately</code>
+contains <code>Relative</code> (the default), and there are relative imports.</p></li>
 <li><p>The <code>groupSeparately</code> parameter is set, and there are
 <a href="#groupseparately">matching imports</a>.</p></li>
 </ol>
@@ -651,7 +654,7 @@ version 2020.3.</p>
 <h4><a class="anchor" aria-hidden="true" id="with-relative-imports-and-an-explicitly-imported-implicit-name"></a><a href="#with-relative-imports-and-an-explicitly-imported-implicit-name" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>With relative imports and an explicitly imported implicit name</h4>
 <pre><code class="hljs css language-conf"><span class="hljs-keyword">OrganizeImports </span>{
   groups = [<span class="hljs-string">"re:javax?\\."</span>, <span class="hljs-string">"scala."</span>, <span class="hljs-string">"*"</span>]
-  groupSeparately = [<span class="hljs-keyword">ByNameImplicits]
+  groupSeparately = [Relative, <span class="hljs-keyword">ByNameImplicits]
 </span>}
 </code></pre>
 <p>Before:</p>
@@ -740,12 +743,46 @@ using regular expression.</p>
 </code></pre>
 <h2><a class="anchor" aria-hidden="true" id="groupseparately"></a><a href="#groupseparately" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a><code>groupSeparately</code></h2>
 <p>This parameter places matching imports in a trailing order-preserving import
-group, together with relative imports, if any (see the <a href="/scalafix/docs/rules/OrganizeImports.html#groups">trailing
+group (see the <a href="/scalafix/docs/rules/OrganizeImports.html#groups">trailing
 order-preserving import group</a> section for more
 details).</p>
 <h3><a class="anchor" aria-hidden="true" id="value-type-5"></a><a href="#value-type-5" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Value type</h3>
 <p>This parameter accepts a list of zero or more values
 described below.</p>
+<h4><a class="anchor" aria-hidden="true" id="relative"></a><a href="#relative" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a><code>Relative</code></h4>
+<p>When <a href="#expandrelative"><code>expandRelative</code></a> is <code>false</code>, place relative imports
+in the trailing order-preserving group. This is enabled by default because a
+relative import can depend on a preceding import.</p>
+<p>Omit <code>Relative</code> to place relative imports in groups matched by their resolved,
+fully qualified references, and sort them according to <code>importsOrder</code>. Their
+original relative spelling is retained in the output. For example, this
+configuration puts both imports in the same group without adding a blank
+line:</p>
+<pre><code class="hljs css language-conf">OrganizeImports {
+  <span class="hljs-attr">expandRelative</span> = <span class="hljs-literal">false</span>
+  <span class="hljs-attr">groupSeparately</span> = [ByTypeGivens]
+  <span class="hljs-attr">groups</span> = [<span class="hljs-string">"org.apache.pekko"</span>, <span class="hljs-string">"*"</span>]
+}
+</code></pre>
+<pre><code class="hljs css language-scala"><span class="hljs-keyword">import</span> org.apache.pekko
+<span class="hljs-keyword">import</span> pekko.annotation.<span class="hljs-type">ApiMayChange</span>
+</code></pre>
+<blockquote>
+<p>However, omitting <code>Relative</code> is unsafe unless your group and sorting
+configuration preserves the ordering dependencies between imports. The
+resolved reference is used to choose a group and sort relative imports; it
+does not make a relative import independent of the imports needed to resolve
+its qualifier. For example, with
+<code>groups = [&quot;org.apache.pekko.annotation.&quot;, &quot;*&quot;]</code>,
+<code>import pekko.annotation.ApiMayChange</code> is placed in the first group, ahead of
+the prerequisite <code>import org.apache.pekko</code> in the wildcard group. The
+resulting order fails to compile.</p>
+</blockquote>
+<p><strong>Migration note for the next release:</strong> An explicit <code>groupSeparately</code> list
+now controls relative imports as well. Add <code>Relative</code> to an existing list
+to preserve the previous behavior. For example, change
+<code>groupSeparately = [ByTypeGivens]</code> to
+<code>groupSeparately = [Relative, ByTypeGivens]</code>.</p>
 <h4><a class="anchor" aria-hidden="true" id="bynameimplicits"></a><a href="#bynameimplicits" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a><code>ByNameImplicits</code></h4>
 <p>This option provides a workaround to a subtle and rarely seen
 correctness issue related to explicitly imported implicit names.</p>
@@ -827,10 +864,10 @@ come from any package <code>P</code> that must be imported earlier. This matters
 <li>Scala 3 SemanticDB does not currently provide symbol information for <code>T</code>.</li>
 </ul>
 <h3><a class="anchor" aria-hidden="true" id="default-value-5"></a><a href="#default-value-5" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Default value</h3>
-<p><code>[ByTypeGivens]</code></p>
-<p>This value is enabled by default because by-type given imports are more likely
-to produce invalid code when reorganized. When no such imports are present, the
-option has no effect.</p>
+<p><code>[Relative, ByTypeGivens]</code></p>
+<p>These values are enabled by default because relative imports and by-type given
+imports can depend on preceding imports. When no such imports are present, the
+options have no effect.</p>
 <h3><a class="anchor" aria-hidden="true" id="examples-5"></a><a href="#examples-5" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Examples</h3>
 <h4><a class="anchor" aria-hidden="true" id="bynameimplicits-1"></a><a href="#bynameimplicits-1" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a><code>ByNameImplicits</code></h4>
 <pre><code class="hljs css language-conf"><span class="hljs-class">OrganizeImports </span>{
@@ -1028,7 +1065,7 @@ caused by trivial import changes.</p>
   <span class="hljs-attr">blankLines</span> = Auto
   <span class="hljs-attr">coalesceToWildcardImportThreshold</span> = <span class="hljs-literal">null</span>
   <span class="hljs-attr">expandRelative</span> = <span class="hljs-literal">false</span>
-  <span class="hljs-attr">groupSeparately</span> = []
+  <span class="hljs-attr">groupSeparately</span> = [Relative, ByTypeGivens]
   <span class="hljs-attr">groupedImports</span> = Explode
   <span class="hljs-attr">groups</span> = [
     <span class="hljs-string">"*"</span>
@@ -1054,7 +1091,7 @@ for more details.</p>
   <span class="hljs-attr">blankLines</span> = Auto
   <span class="hljs-attr">coalesceToWildcardImportThreshold</span> = <span class="hljs-number">5</span>
   <span class="hljs-attr">expandRelative</span> = <span class="hljs-literal">false</span>
-  <span class="hljs-attr">groupSeparately</span> = []
+  <span class="hljs-attr">groupSeparately</span> = [Relative, ByTypeGivens]
   <span class="hljs-attr">groupedImports</span> = Merge
   <span class="hljs-attr">groups</span> = [
     <span class="hljs-string">"*"</span>
