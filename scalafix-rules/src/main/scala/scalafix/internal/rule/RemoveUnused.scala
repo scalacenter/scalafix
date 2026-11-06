@@ -177,9 +177,6 @@ class RemoveUnused(config: RemoveUnusedConfig)
           isUnusedTerm.contains(defn.pos.start)
 
       doc.tree.collect {
-        case importer: Importer
-            if importer.values.forall(_.is[Importee.Unimport]) =>
-          importer.values.map(Patch.removeImportee).asPatch
         case importer: Importer =>
           val (unused, used) = importer.values.partition(isUnusedImportee)
           val hasUsedWildcard = used.exists(_.is[Importee.Wildcard])
