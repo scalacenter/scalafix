@@ -1,6 +1,7 @@
 -Xss2m
 -Xms2G
--Xmx8G
+-Xmx6G
+-XX:MaxMetaspaceSize=6G
 -XX:ReservedCodeCacheSize=512m
 -XX:+UseG1GC
 -XX:+TieredCompilation
