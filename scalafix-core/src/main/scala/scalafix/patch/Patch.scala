@@ -36,6 +36,9 @@ sealed abstract class Patch extends Product {
   /** Merge this patch together with the other patches. */
   def ++(other: Iterable[Patch]): Patch = other.foldLeft(this)(_ + _)
 
+  private[scalafix] def concat[A](other: Iterable[A])(f: A => Patch): Patch =
+    other.foldLeft(this)(_ + f(_))
+
   /**
    * Returns true if this patch is equal to Patch.empty, false otherwise.
    *
@@ -114,7 +117,7 @@ object Patch {
 
   /** Add this string to the right of this token. */
   def addRight(tok: Token, toAdd: String): Patch =
-    Add(tok, "", toAdd)
+    if (toAdd.isEmpty) Patch.empty else Add(tok, "", toAdd)
 
   /** Add this string to the right of this tree. */
   def addRight(tree: Tree, toAdd: String): Patch =
@@ -122,14 +125,15 @@ object Patch {
 
   /** Add this string to the left of this token. */
   def addLeft(tok: Token, toAdd: String): Patch =
-    Add(tok, toAdd, "")
+    if (toAdd.isEmpty) Patch.empty else Add(tok, toAdd, "")
 
   /** Add this string to the left of this tree. */
   def addLeft(tree: Tree, toAdd: String): Patch =
     tree.tokens.headOption.fold(Patch.empty)(addLeft(_, toAdd))
 
   def addAround(tok: Token, left: String, right: String): Patch =
-    Add(tok, left, right)
+    if (left.isEmpty && right.isEmpty) Patch.empty
+    else Add(tok, left, right)
 
   def addAround(tree: Tree, left: String, right: String): Patch = {
     (tree.tokens.headOption.fold(Patch.empty)(addLeft(_, left)) +
