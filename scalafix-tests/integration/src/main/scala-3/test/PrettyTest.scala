@@ -27,7 +27,7 @@ class PrettyTest {
     def foo(a: Int): Int
   }])
   Option(b)
-  Option(null.asInstanceOf[Int with String])
+  Option(null.asInstanceOf[Int & String])
   Option(null.asInstanceOf[this.type])
 
 }
@@ -85,8 +85,8 @@ object Test {
     val superType3 = C.super[M].m
 
     val compoundType1: { def k: Int } = ???
-    val compoundType2: M with N = ???
-    val compoundType3: M with N { def k: Int } = ???
+    val compoundType2: M & N = ???
+    val compoundType3: M & N { def k: Int } = ???
     val compoundType4 = new { def k: Int = ??? }
     val compoundType5 = new M with N
     val compoundType6 = new M with N { def k: Int = ??? }

@@ -158,6 +158,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
         "scala37" -> scala37,
         "scala38" -> scala38,
         "scala39" -> scala39,
+        "scala310" -> scala310,
         "scala3LTS" -> scala3LTS,
         "scala3Next" -> scala3Next,
         sbtVersion
@@ -250,7 +251,8 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
   )
 
   private val PreviousScalaVersion: Map[String, Option[String]] = Map(
-    "3.3.9" -> Some("3.3.8")
+    "3.3.9" -> Some("3.3.8"),
+    "3.10.0" -> None
   )
 
   override def buildSettings: Seq[Setting[_]] = List(
@@ -305,7 +307,9 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
       "-Wconf:cat=deprecation&msg=JavaConverters:s",
       "-Wconf:cat=deprecation&msg=AssociatedComments:s",
       // TODO: remove after replacing compat-metaconfig-macros with proper metaconfig
-      "-Wconf:msg=.*Toplevel definition .* is defined in.*:s"
+      "-Wconf:msg=.*Toplevel definition .* is defined in.*:s",
+      // TODO: remove after metaconfig is compiled with Scala 3.10+
+      "-Wconf:msg=.*ArrowAssoc.* is deprecated.*:s"
     ),
     scalacOptions += "-Wconf:origin=scala.collection.compat.*:s",
     scalacOptions ++= compilerOptions.value,

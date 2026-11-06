@@ -101,6 +101,11 @@ public interface Scalafix {
     String scala39();
 
     /**
+     * The Scala 3.10 version in {@link #supportedScalaVersions()}
+     */
+    String scala310();
+
+    /**
      * The Scala 3 LTS version in {@link #supportedScalaVersions()}
      */
     String scala3LTS();
@@ -176,6 +181,8 @@ public interface Scalafix {
             scalaVersionKey = "scala38";
         } else if (requestedScalaMajorMinorOrMajorVersion.equals("3.9")) {
             scalaVersionKey = "scala39";
+        } else if (requestedScalaMajorMinorOrMajorVersion.equals("3.10")) {
+            scalaVersionKey = "scala310";
         } else if (requestedScalaMajorMinorOrMajorVersion.startsWith("3")) {
             scalaVersionKey = "scala3Next";
         } else {
