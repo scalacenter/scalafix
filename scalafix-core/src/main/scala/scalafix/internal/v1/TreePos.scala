@@ -4,6 +4,8 @@ import scala.annotation.tailrec
 
 import scala.meta._
 
+import scalafix.internal.util.ImporterOps._
+
 object TreePos {
   private[scalafix] def symbol[T](
       name: Name,
@@ -65,7 +67,8 @@ object TreePos {
     case Decl.Var(_, p :: Nil, _) => symbolImpl(p)
     case t: Importee.Rename => symbolImpl(t.name)
     case t: Importee.Name => symbolImpl(t.name)
-    case Importer(_, i :: Nil) => symbolImpl(i)
+    case t: Importer if t.values.lengthCompare(1) == 0 =>
+      symbolImpl(t.values.head)
     case t: Init => symbolImpl(t.tpe)
     case t: Mod.Annot => symbolImpl(t.init)
     case _ => $conforms(tree.pos)

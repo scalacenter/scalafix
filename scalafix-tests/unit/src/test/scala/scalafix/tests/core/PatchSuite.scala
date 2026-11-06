@@ -12,6 +12,7 @@ import scalafix.XtensionSeqPatch
 import scalafix.internal.config.ScalaVersion
 import scalafix.internal.patch.PatchInternals
 import scalafix.internal.tests.utils.SkipWindows
+import scalafix.internal.util.ImporterOps._
 import scalafix.internal.v1.Rules
 import scalafix.patch.Patch
 import scalafix.patch.Patch.internal.Add
@@ -97,10 +98,9 @@ class PatchSuite extends AbstractSyntacticRuleSuite {
   case object AddGlobalImporter extends SyntacticRule("addGlobalImporter") {
     override def fix(implicit doc: SyntacticDocument): Patch = {
       Patch.addGlobalImport(
-        Importer(
-          Term.Select(Term.Name("scala"), Term.Name("collection")),
-          List(Importee.Unimport(Name.Indeterminate("mutable")))
-        )
+        Term
+          .Select(Term.Name("scala"), Term.Name("collection"))
+          .importer(Importee.Unimport(Name.Indeterminate("mutable")))
       )
     }
   }
@@ -138,8 +138,8 @@ class PatchSuite extends AbstractSyntacticRuleSuite {
       val util = Term.Select(Term.Name("scala"), Term.Name("util"))
       val mutable = Name.Indeterminate("mutable")
       val rename = Importee.Rename(mutable, Name.Indeterminate("m"))
-      Patch.addGlobalImport(Importer(collection, List(rename))) +
-        Patch.addGlobalImport(Importer(util, List(Importee.Wildcard())))
+      Patch.addGlobalImport(collection.importer(rename)) +
+        Patch.addGlobalImport(util.importer(Importee.Wildcard()))
     }
   }
 

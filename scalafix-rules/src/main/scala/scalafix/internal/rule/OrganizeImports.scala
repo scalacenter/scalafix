@@ -11,6 +11,7 @@ import metaconfig.Conf
 import metaconfig.Configured
 import scalafix.internal.config.ScalaVersion
 import scalafix.internal.rule.ImportMatcher._
+import scalafix.internal.util.ImporterOps._
 import scalafix.lint.Diagnostic
 import scalafix.patch.Patch
 import scalafix.v1.Configuration
@@ -140,7 +141,7 @@ class OrganizeImports(
 
     val orderPreservingGroup = {
       Option(
-        otherImporters sortBy (_.importees.head.pos.start)
+        otherImporters sortBy (_.values.head.pos.start)
       ) filter (_.nonEmpty)
     }
 
@@ -171,8 +172,8 @@ class OrganizeImports(
       imports: Seq[Import]
   ): Patch =
     Patch.fromIterable {
-      imports flatMap (_.importers) flatMap { case Importer(_, importees) =>
-        val (unused, used) = importees.partition(unusedImporteePositions)
+      imports flatMap (_.importers) flatMap { importer =>
+        val (unused, used) = importer.values.partition(unusedImporteePositions)
         val hasUsedWildcard = used.exists(_.is[Importee.Wildcard])
 
         unused map {
@@ -197,7 +198,7 @@ class OrganizeImports(
   ): Option[Importer] =
     if (!config.removeUnused) Some(importer)
     else {
-      val flagged = importer.importees.map(i => (i, unusedImporteePositions(i)))
+      val flagged = importer.values.map(i => (i, unusedImporteePositions(i)))
       val hasUsedWildcard = flagged.exists { case (i, unused) =>
         !unused && i.is[Importee.Wildcard]
       }
@@ -224,7 +225,7 @@ class OrganizeImports(
 
       if (!rewritten) Some(importer)
       else if (noUnused.isEmpty) None
-      else Some(importer.copy(importees = noUnused))
+      else Some(importer.withValues(noUnused))
     }
 
   private def partitionImplicits(
@@ -237,7 +238,7 @@ class OrganizeImports(
     val separateGivens = targetDialect.allowGivenUsing &&
       config.groupSeparately.contains(GroupSeparately.ByTypeGivens)
     if (separateImplicits || separateGivens) importers.foreach { importer =>
-      val (implicits, noImplicits) = importer.importees.partition {
+      val (implicits, noImplicits) = importer.values.partition {
         case i: Importee.Name =>
           separateImplicits && i.symbol.infoNoThrow.exists(_.isImplicit)
         case _: Importee.Given => separateGivens
@@ -246,8 +247,8 @@ class OrganizeImports(
       if (implicits.isEmpty) noImplicitImporters += importer
       else if (noImplicits.isEmpty) implicitImporters += importer
       else {
-        implicitImporters += importer.copy(importees = implicits)
-        noImplicitImporters += importer.copy(importees = noImplicits)
+        implicitImporters += importer.withValues(implicits)
+        noImplicitImporters += importer.withValues(noImplicits)
       }
     }
     else importers.foreach(noImplicitImporters += _)
@@ -324,8 +325,8 @@ class OrganizeImports(
     val fullyQualifiedTopQualifier =
       toFullyQualifiedRef(topQualifierOf(importer.ref).symbol)
 
-    importer.copy(
-      ref = replaceTopQualifier(importer.ref, fullyQualifiedTopQualifier)
+    importer.withRef(
+      replaceTopQualifier(importer.ref, fullyQualifiedTopQualifier)
     )
   }
 
@@ -386,7 +387,7 @@ class OrganizeImports(
     def sortSyntax(f: SortFunc)(imp: Importer): String = {
       implicit val sb = new StringBuilder
       sb.append(treeSyntax(imp.ref)).append('.')
-      f(sb, imp.isCurlyBraced, imp.importees)
+      f(sb, imp.isCurlyBraced, imp.values)
       sb.toString()
     }
     val sortSyntaxFunc: SortFunc = (sb, inBraces, imps) => {
@@ -428,7 +429,7 @@ class OrganizeImports(
   ): Iterator[Importer] =
     importers.toList.groupBy(i => treeSyntax(i.ref)).values.iterator.flatMap {
       case group @ ref :: rest if rest.nonEmpty =>
-        val importeeLists = group map (_.importees)
+        val importeeLists = group map (_.values)
         val hasWildcard = group exists (_.hasWildcard)
         val hasGivenAll = group exists (_.hasGivenAll)
 
@@ -457,7 +458,7 @@ class OrganizeImports(
         }.flatten
 
         val (givens, nonGivens) =
-          group.flatMap(_.importees).partition(_.is[Importee.Given])
+          group.flatMap(_.values).partition(_.is[Importee.Given])
 
         // Here we assume that a name is renamed at most once within a single source file, which is
         // true in most cases.
@@ -616,10 +617,10 @@ class OrganizeImports(
     }
 
   private def coalesceImportees(importer: Importer): Importer = {
-    val Importees(names, renames, unimports, givens, _, _) = importer.importees
+    val Importees(names, renames, unimports, givens, _, _) = importer.values
 
     config.coalesceToWildcardImportThreshold
-      .filter(importer.importees.length > _)
+      .filter(importer.values.length > _)
       // Skips if there's no `Name`s or `Given`s. `Rename`s and `Unimport`s cannot be coalesced.
       .filterNot(_ => names.isEmpty && givens.isEmpty)
       .map {
@@ -628,7 +629,7 @@ class OrganizeImports(
         case _ =>
           renames ++ unimports :+ Importee.GivenAll() :+ Importee.Wildcard()
       }
-      .map(importees => importer.copy(importees = importees))
+      .map(importer.withValues)
       .getOrElse(importer)
   }
 
@@ -638,7 +639,7 @@ class OrganizeImports(
     // The Scala language spec allows an import expression to have at most one final wildcard, which
     // can only appears in the last position.
     val (wildcards, others) =
-      importer.importees partition (i =>
+      importer.values partition (i =>
         i.is[Importee.Wildcard] || i.is[Importee.GivenAll]
       )
 
@@ -649,7 +650,7 @@ class OrganizeImports(
         Seq(others, wildcards) map sortImporteesSymbolsFirst reduce (_ ++ _)
       case IntelliJ =>
         val Importees(names, renames, unimports, givens, givenAll, wildcard) =
-          importer.importees
+          importer.values
         names.sortBy(treeSyntax) ++
           renames.sortBy(treeSyntax) ++
           unimports.sortBy(treeSyntax) ++
@@ -657,18 +658,18 @@ class OrganizeImports(
           givens.sortBy(treeSyntax) ++
           givenAll
       case Keep =>
-        importer.importees
+        importer.values
     }
 
     // Checks whether importees of the input importer are already sorted. If yes, we should return
     // the original importer to preserve the original source level formatting.
     val alreadySorted =
       config.importSelectorsOrder == Keep ||
-        (importer.importees corresponds orderedImportees) { (lhs, rhs) =>
+        (importer.values corresponds orderedImportees) { (lhs, rhs) =>
           treeSyntax(lhs) == treeSyntax(rhs)
         }
 
-    if (alreadySorted) importer else importer.copy(importees = orderedImportees)
+    if (alreadySorted) importer else importer.withValues(orderedImportees)
   }
 
   /**
@@ -749,8 +750,8 @@ class OrganizeImports(
       ig.index -> ig.imports.map { i1 =>
         val i1o = i1.originalPrototype()
         val i1p = i1o.parent.filter(_.hasComments)
-        val i2ps = i1.importees.flatMap { i2 =>
-          val i2p = i2.originalPrototype().parent.getOrElse(i1o)
+        val i2ps = i1.values.flatMap { i2 =>
+          val i2p = importerOf(i2.originalPrototype()).getOrElse(i1o)
           if (i2p eq i1o) None else i2p.parent.filter(_.hasComments)
         }
         (i1, i1p.fold(i2ps)(_ :: i2ps).distinct)
@@ -772,8 +773,7 @@ class OrganizeImports(
           if (commentsPrinted.add(pc))
             pc.values.foreach(x => sb.append(' ').append(x.syntax))
 
-        val single =
-          if (i.importees.lengthCompare(1) == 0) i.importees.head else null
+        val single = if (i.values.lengthCompare(1) == 0) i.values.head else null
 
         ps.foreach(_.begComment.foreach(appendBegComment))
         i.begComment.foreach(appendBegComment)
@@ -794,10 +794,8 @@ class OrganizeImports(
           sb.append("import ").append(refSyntax(i.ref)).append('.')
           if (single != null) {
             val isCurly = single.isCurlyBraced
-            val useOuterSpace = isCurly && single
-              .originalPrototype()
-              .parent
-              .exists(_.hasSpaceInCurly)
+            val useOuterSpace = isCurly &&
+              importerOf(single.originalPrototype()).exists(_.hasSpaceInCurly)
             if (isCurly) {
               sb.append('{')
               if (useOuterSpace) sb.append(' ')
@@ -809,13 +807,13 @@ class OrganizeImports(
             }
             single.endComment.foreach(appendEndComment)
           } else {
-            val lines = i.importees.iterator.map(_.pos.startLine).filter(_ >= 0)
+            val lines = i.values.iterator.map(_.pos.startLine).filter(_ >= 0)
             val isMultiline = lines.hasNext && {
               val line = lines.next()
               lines.exists(_ != line)
             }
-            val origImporters = i.importees
-              .flatMap(_.originalPrototype().parent)
+            val origImporters = i.values
+              .flatMap(x => importerOf(x.originalPrototype()))
               .distinct
             val useOuterSpace =
               !isMultiline && origImporters.exists(_.hasSpaceInCurly)
@@ -829,7 +827,7 @@ class OrganizeImports(
             if (isMultiline) sb.append(sep)
             else if (useOuterSpace) sb.append(' ')
             val sblen = sb.length
-            i.importees.foreach { i2 =>
+            i.values.foreach { i2 =>
               if (sb.length > sblen) sb.append(',').append(sep)
               val proto = i2.originalPrototype()
               proto.begComment.foreach(appendBegComment)
@@ -1019,37 +1017,33 @@ object OrganizeImports {
   private def explodeImportees(
       importers: Iterator[Importer]
   ): Iterator[Importer] =
-    importers flatMap {
-      case importer @ Importer(_, _ :: Nil) =>
-        // If the importer has exactly one importee, returns it as is to preserve the original
-        // source level formatting.
-        importer :: Nil
+    importers flatMap { importer =>
+      importer.values match {
+        case _ :: Nil =>
+          // If the importer has exactly one importee, returns it as is to preserve the original
+          // source level formatting.
+          importer :: Nil
 
-      case importer @ Importer(
-            _,
-            Importees(names, renames, unimports, givens, givenAll, wildcard)
-          ) if givenAll.isDefined || wildcard.isDefined =>
-        // When a wildcard exists, all renames, unimports, and the wildcard must appear in the same
-        // importer, e.g.:
-        //
-        //   import p.{A => _, B => _, C => D, E, _}
-        //
-        // should be rewritten into
-        //
-        //   import p.{A => _, B => _, C => D, _}
-        //   import p.E
-        val importeesList =
-          (names ++ givens).map(
-            _ :: Nil
-          ) :+ (renames ++ unimports ++ wildcard ++ givenAll)
-        preserveOriginalImportersFormatting(
-          Seq(importer),
-          importeesList,
-          importer
-        )
+        case Importees(names, renames, unimports, givens, givenAll, wildcard)
+            if givenAll.isDefined || wildcard.isDefined =>
+          // When a wildcard exists, all renames, unimports, and the wildcard must appear in the same
+          // importer, e.g.:
+          //
+          //   import p.{A => _, B => _, C => D, E, _}
+          //
+          // should be rewritten into
+          //
+          //   import p.{A => _, B => _, C => D, _}
+          //   import p.E
+          preserveOriginalImportersFormatting(
+            Seq(importer),
+            (names ++ givens).map(_ :: Nil) :+
+              (renames ++ unimports ++ wildcard ++ givenAll),
+            importer
+          )
 
-      case importer =>
-        importer.importees map (i => importer.copy(importees = i :: Nil))
+        case importees => importees.map(importer.withValues)
+      }
     }
 
   /**
@@ -1066,7 +1060,7 @@ object OrganizeImports {
     val importerSyntaxMap = importers.map { i => treeSyntax(i) -> i }.toMap
 
     newImporteeLists filter (_.nonEmpty) map { importees =>
-      val newImporter = refImporter.copy(importees = importees)
+      val newImporter = refImporter.withValues(importees)
       importerSyntaxMap.getOrElse(treeSyntax(newImporter), newImporter)
     }
   }
@@ -1261,8 +1255,8 @@ object OrganizeImports {
      * Checks whether the `Importer` should be curly-braced when pretty-printed.
      */
     def isCurlyBraced(implicit dialect: Dialect): Boolean =
-      importer.importees.lengthCompare(1) != 0 ||
-        importer.importees.head.isCurlyBraced
+      importer.values.lengthCompare(1) != 0 ||
+        importer.values.head.isCurlyBraced
 
     /**
      * Returns an `Importer` with all the `Importee`s that are selected from the
@@ -1272,31 +1266,31 @@ object OrganizeImports {
      * selected, returns a `None`.
      */
     def filterImportees(f: Importee => Boolean): Option[Importer] = {
-      val filtered = importer.importees filter f
-      if (filtered.length == importer.importees.length) Some(importer)
+      val filtered = importer.values filter f
+      if (filtered.length == importer.values.length) Some(importer)
       else if (filtered.isEmpty) None
-      else Some(importer.copy(importees = filtered))
+      else Some(importer.withValues(filtered))
     }
 
     /** Returns true if the `Importer` contains a standalone wildcard. */
     def hasWildcard: Boolean =
-      importer.importees.exists(_.is[Importee.Wildcard]) &&
-        !importer.importees.exists(_.is[Importee.Unimport])
+      importer.values.exists(_.is[Importee.Wildcard]) &&
+        !importer.values.exists(_.is[Importee.Unimport])
 
     /** Returns true if the `Importer` contains a standalone given wildcard. */
     def hasGivenAll: Boolean =
-      importer.importees.exists(_.is[Importee.GivenAll]) &&
-        !importer.importees.exists(_.is[Importee.Unimport])
+      importer.values.exists(_.is[Importee.GivenAll]) &&
+        !importer.values.exists(_.is[Importee.Unimport])
 
     def hasSpaceInCurly: Boolean = {
       def lspace: Boolean = {
-        val tokens = importer.importees.head.tokens
+        val tokens = importer.values.head.tokens
         val idx = tokens.rskipWideIf(_.is[Token.HTrivia], -1)
         idx < -1 &&
         tokens.getWideOpt(idx).exists(_.is[Token.LeftBrace])
       }
       def rspace: Boolean = {
-        val tokens = importer.importees.last.tokens
+        val tokens = importer.values.last.tokens
         val idx = tokens.skipWideIf(_.is[Token.HTrivia], tokens.length)
         idx > tokens.length &&
         tokens.getWideOpt(idx).exists(_.is[Token.RightBrace])
@@ -1305,7 +1299,7 @@ object OrganizeImports {
     }
 
     def hasTrailingComma: Boolean = {
-      val tokens = importer.importees.last.tokens
+      val tokens = importer.values.last.tokens
       // Skip trivia between the last importee and the next token.
       val idx = tokens.skipWideIf(_.is[Token.HTrivia], tokens.length)
       tokens.getWideOpt(idx).exists(_.is[Token.Comma])
@@ -1318,7 +1312,7 @@ object OrganizeImports {
      * Would pretty-printing under `dialect` rewrite `=>` to `as` or `_` to `*`?
      */
     def needsDialectRewrite(implicit dialect: Dialect): Boolean =
-      importer.importees.exists {
+      importer.values.exists {
         case i: Importee.Wildcard =>
           i.tokens.exists(_.is[Token.Underscore]) ==
             dialect.allowStarWildcardImport
@@ -1345,13 +1339,6 @@ object OrganizeImports {
         importer.spansMultipleLines &&
         !importer.needsDialectRewrite
 
-  }
-
-  implicit private class TreeExtension(val tree: Tree) extends AnyVal {
-    def hasSpaceInCurly: Boolean = tree match {
-      case i: Importer => i.hasSpaceInCurly
-      case _ => false
-    }
   }
 
 }

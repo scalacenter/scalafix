@@ -9,6 +9,7 @@ import scala.meta.trees.Origin
 
 import scalafix.XtensionOptionPatch
 import scalafix.XtensionSeqPatch
+import scalafix.internal.util.ImporterOps._
 import scalafix.internal.util.SymbolOps
 import scalafix.patch.Patch
 import scalafix.patch.Patch.internal._
@@ -73,7 +74,7 @@ object ImportPatchOps {
       importer <- allImporters.iterator
       if importer.parent.parent.is[Pkg]
     } yield importer.syntax).toSet
-    val allImportees = allImporters.flatMap(_.importees)
+    val allImportees = allImporters.flatMap(_.values)
     lazy val allNamedImports = allImportees.collect {
       case Importee.Name(n) if index.symbol(n).isDefined =>
         n.symbol
@@ -107,7 +108,7 @@ object ImportPatchOps {
         for { // register global imports
           import_ <- globalImports
           importer <- import_.importers
-          importee <- importer.importees
+          importee <- importer.values
           symbol <- index.symbol(importee).toList
           underlying <- SymbolOps.underlyingSymbols(symbol)
         } {
@@ -136,15 +137,15 @@ object ImportPatchOps {
         importersToAdd
           .groupBy(_.ref.syntax)
           .map { case (_, is) =>
-            Importer(
-              is.head.ref,
-              is.flatMap(_.importees)
-                .sortBy({
+            is.head.withValues(
+              is
+                .flatMap(_.values)
+                .sortBy {
                   case Importee.Name(n) => n.value
                   case Importee.Rename(n, _) => n.value
                   case Importee.Unimport(n) => n.value
                   case Importee.Wildcard() => '\uFFFF'.toString
-                })
+                }
                 .toList
             )
           }
@@ -158,9 +159,7 @@ object ImportPatchOps {
     }
     val extraPatches = ctx.addRight(editToken, sb.result())
     val isRemovedImporter =
-      allImporters.iterator
-        .filter(_.importees.forall(isRemovedImportee))
-        .toSet
+      allImporters.iterator.filter(_.values.forall(isRemovedImportee)).toSet
     def removeSpaces(tokens: Iterable[Token]): Patch = {
       tokens
         .takeWhile {
@@ -171,11 +170,11 @@ object ImportPatchOps {
         .asPatch
     }
     val removeCurlyBraces = { (importer: Importer) =>
-      val keptImportees = importer.importees.filterNot(isRemovedImportee)
-      val hasRemovedImportee = importer.importees.exists(isRemovedImportee)
-      keptImportees match {
-        case (Importee.Wildcard() | Importee.Name(_)) +: Nil
-            if hasRemovedImportee =>
+      val importees = importer.values
+      importees.filterNot(isRemovedImportee) match {
+        // a single importee is left, so the others were removed
+        case (Importee.Wildcard() | Importee.Name(_)) :: Nil
+            if importees.lengthCompare(1) > 0 =>
           importer.tokens.collectFirst { case open @ Token.LeftBrace() =>
             ctx.matchingParens
               .close(open)
@@ -207,21 +206,15 @@ object ImportPatchOps {
       // The same situation arises for importers: import a.{b, c, d, e} where
       // b, c and e are unused. In this case, the c import should delete it's
       // trailing comma.
+      def isLastRemoved[A <: Tree](values: Seq[A], set: collection.Set[A]) = {
+        values.lengthCompare(1) != 0 &&
+        values.takeWhile(set.contains).lastOption.contains(toRemove)
+      }
       val isResponsibleForTrailingComma = toRemove.parent match {
         case Some(i: Import) =>
-          val isSingleImporter = i.importers.lengthCompare(1) == 0
-          !isSingleImporter &&
-          i.importers
-            .takeWhile(isRemovedImporter)
-            .lastOption
-            .exists(_ eq toRemove)
+          isLastRemoved(i.importers, isRemovedImporter)
         case Some(i: Importer) =>
-          val isSingleImportee = i.importees.lengthCompare(1) == 0
-          !isSingleImportee &&
-          i.importees
-            .takeWhile(isRemovedImportee)
-            .lastOption
-            .exists(_ eq toRemove)
+          isLastRemoved(i.values, isRemovedImportee)
         case _ => false
       }
       // Always remove the leading comma

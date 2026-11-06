@@ -8,6 +8,7 @@ import scala.meta.tokens.Token
 
 import metaconfig.Configured
 import scalafix.internal.config.ScalaVersion
+import scalafix.internal.util.ImporterOps._
 import scalafix.v1._
 
 class RemoveUnused(config: RemoveUnusedConfig)
@@ -176,11 +177,11 @@ class RemoveUnused(config: RemoveUnusedConfig)
           isUnusedTerm.contains(defn.pos.start)
 
       doc.tree.collect {
-        case Importer(_, importees)
-            if importees.forall(_.is[Importee.Unimport]) =>
-          importees.map(Patch.removeImportee).asPatch
-        case Importer(_, importees) =>
-          val (unused, used) = importees.partition(isUnusedImportee)
+        case importer: Importer
+            if importer.values.forall(_.is[Importee.Unimport]) =>
+          importer.values.map(Patch.removeImportee).asPatch
+        case importer: Importer =>
+          val (unused, used) = importer.values.partition(isUnusedImportee)
           val hasUsedWildcard = used.exists(_.is[Importee.Wildcard])
           unused.map {
             case i: Importee.Rename if hasUsedWildcard =>

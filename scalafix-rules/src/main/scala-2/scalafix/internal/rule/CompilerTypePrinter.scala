@@ -10,6 +10,7 @@ import scala.meta.internal.pc.ScalafixGlobal
 import scala.meta.internal.proxy.GlobalProxy
 
 import scalafix.internal.compat.CompilerCompat
+import scalafix.internal.util.ImporterOps._
 import scalafix.v1
 
 class CompilerTypePrinter(g: ScalafixGlobal, config: ExplicitResultTypesConfig)(
@@ -194,7 +195,7 @@ class CompilerTypePrinter(g: ScalafixGlobal, config: ExplicitResultTypesConfig)(
           if (name.value == "package") owner
           else m.Term.Select(owner, name)
         }
-        v1.Patch.addGlobalImport(m.Importer(ref, List(importee)))
+        v1.Patch.addGlobalImport(ref.importer(importee))
       }
     }
 
