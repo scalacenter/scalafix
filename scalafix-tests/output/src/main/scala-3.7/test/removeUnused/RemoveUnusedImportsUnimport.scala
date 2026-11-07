@@ -2,9 +2,11 @@ package test.removeUnused
 
 object RemoveUnusedImportsUnimport {
   object UnimportAlone {
+    import scala.util.{Random as _}
   }
 
   object Unimports {
+    import scala.util.{Random as _, Left as _}
   }
 
   object UnimportBesideWildcard {
