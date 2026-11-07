@@ -125,31 +125,26 @@ class ScalafixSuite extends AnyFunSuite {
   }
 
   test("classload Scala 3.9 with full version") {
-    if (jdk < 17) cancel("Scala 3.8+ requires JDK17+")
     val scalafixAPI = Scalafix.fetchAndClassloadInstance("3.9.0", repositories)
     assert(scalafixAPI.scalaVersion() == Versions.scala39)
   }
 
   test("classload Scala 3.9 with major.minor version") {
-    if (jdk < 17) cancel("Scala 3.8+ requires JDK17+")
     val scalafixAPI = Scalafix.fetchAndClassloadInstance("3.9", repositories)
     assert(scalafixAPI.scalaVersion() == Versions.scala39)
   }
 
   test("classload Scala 3.10 with full version") {
-    if (jdk < 17) cancel("Scala 3.8+ requires JDK17+")
     val scalafixAPI = Scalafix.fetchAndClassloadInstance("3.10.0", repositories)
     assert(scalafixAPI.scalaVersion() == Versions.scala310)
   }
 
   test("classload Scala 3.10 with major.minor version") {
-    if (jdk < 17) cancel("Scala 3.8+ requires JDK17+")
     val scalafixAPI = Scalafix.fetchAndClassloadInstance("3.10", repositories)
     assert(scalafixAPI.scalaVersion() == Versions.scala310)
   }
 
   test("classload Scala 3 Next with major version") {
-    if (jdk < 17) cancel("Scala 3.8+ requires JDK17+")
     val scalafixAPI = Scalafix.fetchAndClassloadInstance("3", repositories)
     assert(scalafixAPI.scalaVersion() == Versions.scala3Next)
   }

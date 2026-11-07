@@ -13,16 +13,6 @@ inThisBuild(
 Global / cancelable := true
 noPublishAndNoMima
 
-// force javac to fork by setting javaHome to get error messages during compilation,
-// see https://github.com/sbt/zinc/issues/520
-def inferJavaHome() = {
-  val home = file(sys.props("java.home"))
-  val actualHome =
-    if (System.getProperty("java.version").startsWith("1.8")) home.getParentFile
-    else home
-  Some(actualHome)
-}
-
 lazy val interfaces = project
   .in(file("scalafix-interfaces"))
   .settings(
@@ -50,14 +40,12 @@ lazy val interfaces = project
     },
     (Compile / javacOptions) ++= List(
       "-Xlint:all,-options",
-      "-Werror"
-    ) ++ {
-      if (System.getProperty("java.version").startsWith("1.8")) Nil
-      else List("--release", "8")
-    },
+      "-Werror",
+      // keep the embedded API usable from applications running on Java 8
+      "--release",
+      "8"
+    ),
     (Compile / doc / javacOptions) := List("-Xdoclint:none"),
-    (Compile / javaHome) := inferJavaHome(),
-    (Compile / doc / javaHome) := inferJavaHome(),
     libraryDependencies += coursierInterfaces,
     moduleName := "scalafix-interfaces",
     crossPaths := false,

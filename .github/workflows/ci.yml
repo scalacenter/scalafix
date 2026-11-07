@@ -10,7 +10,7 @@ jobs:
       fail-fast: false
       matrix:
         os: ["ubuntu"]
-        jvm: ["8", "11", "17", "21", "25", "26"]
+        jvm: ["17", "21", "25", "26"]
         include:
           - os: windows
             jvm: 25
@@ -43,7 +43,6 @@ jobs:
       - uses: coursier/setup-action@v3
         with:
           apps: sbt
-          jvm: zulu:17 # for scala 3.8+
       - run: ./bin/scalafmt --test
       - run: sbt "dogfoodScalafixInterfaces; scalafixAll --check"
   mima:
@@ -56,5 +55,4 @@ jobs:
       - uses: coursier/setup-action@v3
         with:
           apps: sbt
-          jvm: zulu:17 # for scala 3.8+
       - run: sbt versionPolicyCheck
