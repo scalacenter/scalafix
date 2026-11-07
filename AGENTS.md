@@ -2,157 +2,195 @@
 
 ## Project Overview
 
-Scalafix is a refactoring and linting tool for Scala. It enables syntactic and semantic source code transformations through a rule-based system. The project targets multiple Scala versions (2.12, 2.13, 3.3-3.8) and is built using a complex sbt-projectmatrix setup.
+Scalafix is a refactoring and linting tool for Scala. It supports syntactic and
+SemanticDB-based rules and uses an sbt-projectmatrix build to test and publish
+artifacts across Scala compiler versions.
 
-**Core Architecture:**
-- `scalafix-interfaces`: Java API for JVM integration (cross-platform, no Scala dependency)
-- `scalafix-core`: Data structures for AST rewriting and linting (Scala 2.12/2.13)
-- `scalafix-rules`: Built-in rules like `RemoveUnused`, `ProcedureSyntax` (cross-compiled for all Scala versions)
-- `scalafix-reflect`: Runtime rule compilation (Scala 2 only)
-- `scalafix-cli`: Command-line interface (cross-compiled for all Scala versions)
-- `scalafix-testkit`: Testing framework for rules using input/output file pairs
+Main modules:
+- `scalafix-interfaces`: Java API for embedding Scalafix in a JVM application.
+- `scalafix-core`: rewriting, linting, and public rule APIs; its published matrix
+  targets the Scala 2 line.
+- `scalafix-rules`: built-in rules, cross-built for the supported Scala lines.
+- `scalafix-reflect`: runtime compilation/loading support for external rules.
+- `scalafix-cli`: command-line application and execution engine.
+- `scalafix-testkit`: test framework for rule input/output fixtures.
+- `scalafix-tests`: unit, integration, and rule expectation tests.
+- `scalafix-docs`: code used to generate documentation.
 
-## Critical Build Architecture
+The build also has standalone `core3` and `reflect3` compile-check projects.
+They are not ordinary published matrix rows. In particular, the Scala 3 CLI
+uses the Scala-2-built reflect artifact; inspect the project dependency
+workaround in `build.sbt` before changing this arrangement.
 
-### sbt-projectmatrix Cross-Building
-The build uses `sbt-projectmatrix` to generate multiple sub-projects per module, cross-compiled against different Scala versions. This is NOT standard Scala cross-building.
+## Build Architecture
 
-**TargetAxis System**: Custom mechanism in `project/TargetAxis.scala` that creates test matrix combinations:
-- Each test project is built with a specific Scala version (the "target")
-- Test frameworks compiled with another Scala version can test against that target
-- Some targets include `-Xsource:3` flag (tagged with `Xsource3Axis`)
-- Example: `expect3_8_4Target3_8_4` tests rules compiled with 3.8.4 against input also compiled with 3.8.4
+### sbt-projectmatrix
 
-**Key build concepts:**
-- `projectMatrix`: Defines modules that cross-compile
-- `.jvmPlatform(scalaVersions)`: Creates one sub-project per Scala version
-- `.jvmPlatformTargets(targets)`: Creates sub-projects for test targets
-- `.jvmPlatformAgainstTargets(tuples)`: Creates test projects that run with one Scala version against target compiled with another
-- Use `resolve(matrix, key)` to lookup and extract settings from the matching sub-project
+Most modules are `ProjectMatrix` definitions in `build.sbt`; they generate
+separate sbt projects for the configured Scala compiler versions. Project IDs
+are generated from those versions, so do not rely on a remembered concrete ID.
+Use `sbt projects` to find the current IDs.
+
+`project/TargetAxis.scala` adds a second dimension for tests:
+- `jvmPlatformTargets` creates projects for compiling test input/output with a
+  target Scala version and its associated compiler options.
+- `jvmPlatformAgainstTargets` creates test projects pairing a framework/rules
+  compiler version with an input target version.
+- `TargetAxis` can distinguish normal compilation from `-Xsource:3` compilation.
+- Resolution prefers an exact compiler-version match and falls back to a binary
+  Scala version match while preserving the source-mode axis.
+
+As a result, `unit` and `integration` projects are matrix projects, and rule
+expectation projects include both a framework compiler and a target compiler in
+their generated ID. The `input` and `output` projects compile fixtures under
+target compiler settings; `expect` runs the testkit against those fixtures.
+Avoid treating these projects as a conventional single `++<version>` build.
+
+### Version and matrix maintenance
+
+- `project/Dependencies.scala` is the central place for supported Scala lines
+  and dependency versions.
+- `project/ScalafixBuild.scala` derives matrix versions and target combinations,
+  applies runtime-Java compatibility filters, and records previous compiler
+  versions used for compatibility checks.
+- `project/TargetAxis.scala` defines target lookup and source-mode behavior.
+- `build.sbt` defines module dependencies and which projects participate in
+  each matrix.
+
+When adding, removing, or updating a Scala compiler line, inspect all of these
+places plus version-specific sources/fixtures and CI. Avoid copying a generated
+project ID into docs or scripts when it can be derived from the matrix.
 
 ## Development Workflows
 
-### Running Tests
-```bash
-# Unit tests for latest Scala 3.8.4 version
-sbt "unit3_8_4 / test"
+### Tests
 
-# Integration tests (contains many suites - use testOnly to narrow)
-sbt "integration3_8_4 / testOnly -- -z ProcedureSyntax"
+The root `sbt test` command is the aggregate CI test run and can take a while.
+For focused work, list the current matrix projects with `sbt projects`, then
+scope the task to the appropriate generated project:
 
-# Test built-in rules using scalafix-testkit
-sbt "expect3_8_4Target3_8_4 / test"
-
-# Windows-compatible tests only
-sbt "unit3_8_4 / testWindows"
+```text
+# In the sbt shell; replace placeholders with IDs shown by `projects`.
+> <unit-project-id> / test
+> <integration-project-id> / testOnly -- -z <test-name>
+> <expect-project-id> / test
+> <integration-project-id> / testWindows
 ```
 
-**Pattern**: Test project names combine the Scala version used to compile the test framework with the target being tested: `unit{CompilerVersion}` or `expect{CompilerVersion}Target{TargetVersion}`
+Use `unit` for fast unit tests, `integration` for end-to-end tests, and `expect`
+for built-in rule input/output expectations. Integration suites are numerous;
+prefer `testOnly` (or `testQuick`) when a focused test is available. The
+`testWindows` task excludes tests tagged with
+`scalafix.internal.tests.utils.SkipWindows`; use it for Windows-compatible
+coverage.
 
-If a project name from these examples stops resolving, run `sbt projects` and
-pick the matching latest generated project name from the matrix instead of
-falling back to the root `test` task.
+For a rule expectation, choose an `expect` project whose compiler/target pair
+matches the behavior under test. If a command copied from old docs no longer
+resolves, check `sbt projects` and use the current generated project ID rather
+than guessing a version suffix.
 
-### Applying Scalafix to Itself (Dogfooding)
+Running an sbt test at least once also generates BuildInfo and testkit property
+files needed to run tests or use the debugger from IntelliJ.
+
+### Dogfooding and formatting
+
+`.scalafix.conf` configures the rules applied to this repository. The
+`dogfoodScalafixInterfaces` command publishes local CLI artifacts and their
+dependencies, reloads the sbt plugins with the local interfaces artifact, and
+returns to the main build. Run it before `scalafixAll` so the latest local rules
+are used:
+
 ```bash
-# First, publish local artifacts for all Scala versions
 sbt "dogfoodScalafixInterfaces; scalafixAll"
 ```
 
-The `dogfoodScalafixInterfaces` command:
-1. Runs `publishLocalTransitive` on all CLI versions
-2. Reloads sbt plugins
-3. Overrides `scalafix-interfaces` version in meta-build
-4. Returns to main build
+To check the dogfooding and formatting used by CI:
 
-### Formatting
 ```bash
-# Format all files
-./bin/scalafmt
-
-# Format only changed files
-./bin/scalafmt --diff
+sbt "dogfoodScalafixInterfaces; scalafixAll --check"
+./bin/scalafmt --test
 ```
 
-### Documentation
-```bash
-# Generate docs with mdoc and start Docusaurus server
-sbt ci-docs
-cd website && yarn start
-```
+`./bin/scalafmt` formats all files; `./bin/scalafmt --diff` formats changed
+files.
 
-## Rule Development Patterns
+### Documentation and compatibility
 
-### Rule Types
-- **SyntacticRule**: Works with AST only, no semantic information (fast)
-  - Example: `ProcedureSyntax` - replaces `def foo { }` with `def foo: Unit = { }`
-- **SemanticRule**: Requires SemanticDB (compiler symbols, types)
-  - Example: `RemoveUnused` - removes imports/terms flagged by `-Wunused`
-  - Requires `-Wunused`, `-Ywarn-unused`, or `-Wall` compiler flag
+- `sbt ci-docs` compiles the documentation. To preview the site, run
+  `cd website && yarn install && yarn start`.
+- `sbt versionPolicyCheck` checks binary-compatibility policy. Public APIs under
+  `scalafix.v1` follow Early SemVer; `scalafix.internal` packages have no
+  compatibility guarantee.
+- `sbt save-expect` regenerates integration `.expect` snapshots. Review its
+  changes; do not use it as a substitute for checking an unexpected diff.
 
-### Creating Rules
-Rules extend `scalafix.v1.Rule` and must:
-1. Define in `scalafix-rules/src/main/scala/scalafix/internal/rule/`
-2. Register in `src/main/resources/META-INF/services/scalafix.v1.Rule`
-3. Return `Patch` operations (not string diffs)
-4. Use `.atomic` on patches for suppression support
+## Rule Development
 
-**Key APIs:**
-- `Patch.addLeft(tree, string)` / `Patch.addRight(tree, string)`: Insert text
-- `Patch.removeToken(token)`: Delete token
-- `Patch.replaceTree(tree, string)`: Replace tree node
-- `tree.symbol`: Get symbol from tree (requires `SemanticDocument`)
-- `SymbolMatcher`: Pattern match symbols like `val HasOption = SymbolMatcher.normalized("scala/Option#")`
-- `tree.collect { case ... }`: Traverse AST
+### Rule kinds and implementation
 
-### Testing Rules with Testkit
-Test structure in `scalafix-tests/`:
-- `input/`: Source files to transform (with special comments for assertions)
-- `output/`: Expected output after rewrite
-- `expect/`: Test suite that compares input→output transformation
+- A `SyntacticRule` uses the parsed syntax tree and does not require SemanticDB.
+- A `SemanticRule` uses a `SemanticDocument` for symbols and semantic
+  information. SemanticDB must be generated for the input code.
 
-Special comment syntax in input files:
+Built-in rule implementations are under
+`scalafix-rules/src/main/scala/scalafix/internal/rule/` (with version-specific
+source directories where necessary). When adding a built-in rule:
+1. Follow the relevant `scalafix.v1.Rule`, `SyntacticRule`, or `SemanticRule`
+   pattern in `scalafix-core/src/main/scala/scalafix/v1/Rule.scala`.
+2. Register it in
+   `scalafix-rules/src/main/resources/META-INF/services/scalafix.v1.Rule`.
+3. Return `Patch` operations rather than constructing whole-file diffs.
+4. Group related edits with `.atomic` when they must be suppressed together.
+5. Add or update rule fixtures and run the matching `expect` project.
+
+Useful APIs include `Patch.addLeft`, `Patch.addRight`, `Patch.removeToken`,
+`Patch.replaceTree`, `tree.collect`, `tree.symbol`, and `SymbolMatcher`.
+Prefer existing rule implementations and
+`docs/developers/tutorial.md` for idioms and API details.
+
+### Rule test fixtures
+
+The testkit fixtures live under `scalafix-tests/`:
+- `input/`: source code to analyze or rewrite.
+- `output/`: expected rewritten source; keep paths paired with `input/`.
+- `expect/`: test suite that runs the rule expectations.
+- `unit/` and `integration/`: ordinary unit and integration test suites.
+
+Input fixtures can select rules with a leading configuration comment and assert
+lint diagnostics inline (replace `LintID` with the expected diagnostic ID), for
+example:
+
 ```scala
-/* rules = MyRule */  // Configure which rules to run
-import Unused  // assert: UnusedImport  (linter assertion)
+/* rules = MyRule */
+someCode // assert: LintID
 ```
 
-## Project-Specific Conventions
+Preserve the expected-output pairing and any assertion comments when changing
+fixtures. Some fixture directories are compiler-version-specific; check the
+matching source directories before adding a common or version-specific test.
 
-### Cross-Version Compatibility
-- Use `CrossVersion.for3Use2_13` for Scala 3 depending on Scala 2.13 artifacts
-- Scala 3 rules depend on Scala 2.13 compiled `scalafix-core` (no native Scala 3 core yet)
-- Use `semanticdbScalacCore.cross(CrossVersion.full)` for compiler plugins
+## Cross-Version and Module Conventions
 
-### Module Dependencies
-- `rules` depends on `core` (rewriting primitives)
-- `cli` depends on `rules` + `reflect` (to load external rules)
-- `testkit` depends on `cli` (full execution environment)
-- `reflect` only exists for Scala 2 (no Scala 3 version)
+- Use `CrossVersion.for3Use2_13` when Scala 3 code must consume a Scala 2.13
+  artifact, and follow nearby dependency exclusions to avoid duplicate binary
+  artifacts.
+- The build's `resolve` helpers select a compatible project from a matrix.
+  Use `TargetAxis.resolve` when the requested target must also match its
+  `TargetAxis` settings (including `-Xsource:3`).
+- The module graph is defined in `build.sbt`; check it before adding a dependency
+  or assuming one module is available on every Scala line.
+- Shared compiler-specific code belongs in the appropriate `scala-*` source
+  directory rather than being duplicated in the common source tree.
 
-### Binary Compatibility
-- Use `sbt versionPolicyCheck` before releasing
-- `scalafix.internal._` packages have no compatibility guarantees
-- Public API in `scalafix.v1` follows Early SemVer
+## Key Files
 
-### Configuration Files
-- `.scalafix.conf`: Rules applied when dogfooding (uses HOCON format)
-- Rules configured via `withConfiguration()` method
-- Test files use `/* rules = ... */` comments for configuration
-
-## Common Pitfalls
-
-1. **Wrong test scope**: Use a generated matrix project such as `unit3_8_4 / test` not `test` (ambiguous without projectmatrix context)
-2. **Missing BuildInfo**: IntelliJ debugger requires running a matrix test such as `sbt "unit3_8_4 / test"` once to generate BuildInfo
-3. **Scala 3 reflect**: No `reflect3` module - Scala 3 rules can't dynamically compile
-4. **Dependency resolution**: When bumping Scala versions, update `versionPolicyIgnored` in `ScalafixBuild.scala`
-5. **Test failures on Windows**: Use `testWindows` task, not `test`
-
-## Key Files to Reference
-
-- `project/TargetAxis.scala`: Understand test matrix cross-building
-- `project/ScalafixBuild.scala`: Custom sbt settings and commands
-- `project/Dependencies.scala`: Scala version constants
-- `scalafix-core/src/main/scala/scalafix/v1/Rule.scala`: Rule base classes
-- `scalafix-testkit/src/main/scala/scalafix/testkit/SemanticRuleSuite.scala`: Test framework
-- `docs/developers/tutorial.md`: Step-by-step rule creation guide
+- `build.sbt`: module definitions, matrix rows, and module dependencies.
+- `project/ScalafixBuild.scala`: shared sbt settings, commands, and version
+  compatibility logic.
+- `project/TargetAxis.scala`: test target axes and matrix resolution.
+- `project/Dependencies.scala`: compiler and library version declarations.
+- `scalafix-core/src/main/scala/scalafix/v1/Rule.scala`: public rule APIs.
+- `scalafix-testkit/src/main/scala/scalafix/testkit/SemanticRuleSuite.scala`:
+  semantic rule test framework.
+- `docs/developers/tutorial.md`: rule-development tutorial.
+- `CONTRIBUTING.md`: contributor workflows and project/module overview.
