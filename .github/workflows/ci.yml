@@ -18,6 +18,13 @@ jobs:
     runs-on: ${{ matrix.os }}-latest
     steps:
       - uses: actions/checkout@v7
+      - uses: coursier/cache-action@v9
+        with:
+          ignoreJob: true
+          ignoreMatrix: true
+          extraCoursierKey: ${{ runner.os }}
+          # matrix cells with most coverage write it, others only read
+          cacheMode: ${{ (matrix.jvm == '17' || matrix.os == 'windows') && 'write' || 'read' }}
       - uses: coursier/setup-action@v3
         with:
           apps: sbt
@@ -31,6 +38,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+      - uses: coursier/cache-action@v9
+        with:
+          ignoreJob: true
+          ignoreMatrix: true
+          extraCoursierKey: ${{ runner.os }}
+          cacheMode: read
       - uses: coursier/setup-action@v3
         with:
           apps: sbt
@@ -40,6 +53,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+      - uses: coursier/cache-action@v9
+        with:
+          ignoreJob: true
+          ignoreMatrix: true
+          extraCoursierKey: ${{ runner.os }}
+          cacheMode: read
       - uses: coursier/setup-action@v3
         with:
           apps: sbt
@@ -52,6 +71,12 @@ jobs:
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
+      - uses: coursier/cache-action@v9
+        with:
+          ignoreJob: true
+          ignoreMatrix: true
+          extraCoursierKey: ${{ runner.os }}
+          cacheMode: read
       - uses: coursier/setup-action@v3
         with:
           apps: sbt
