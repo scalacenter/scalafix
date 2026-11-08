@@ -11,22 +11,29 @@ inThisBuild(
 )
 
 Global / cancelable := true
-noPublishAndNoMima
-
-// force javac to fork by setting javaHome to get error messages during compilation,
-// see https://github.com/sbt/zinc/issues/520
-def inferJavaHome() = {
-  val home = file(sys.props("java.home"))
-  val actualHome =
-    if (System.getProperty("java.version").startsWith("1.8")) home.getParentFile
-    else home
-  Some(actualHome)
-}
+// sbt 2 defaults to exporting packaged jars on the inter-project classpath.
+// That breaks this build in two ways:
+// - target/out/**/*.jar are symlinks to extension-less blobs of the sbt cache
+//   (cas/sha256-<hash>-<size>), and the in-process test class loader resolves
+//   symlinks (sbt/sbt#9472). RuleCompilerClasspath hands that runtime
+//   classpath to scalac/dotty, whose AbstractFile.getDirectory silently drops
+//   any file not named *.jar or *.zip, so rules compiled from source in tests
+//   do not see scalafix-core & co.
+// - `compat-metaconfig-macros` relies on its `metaconfig.generic` package
+//   shadowing the Scala 2.13 macros. On conflicting top-level definitions,
+//   the Scala 3 compiler keeps the one from the youngest class file, and fails
+//   on a tie: packaged by sbt, both jars stamp all entries with the default
+//   packageTimestamp (2010-01-01), while class files are always younger.
+// Keep exporting class directories, as sbt 1 did.
+Global / exportJars := false
+LocalRootProject / mimaReportBinaryIssues := {}
+LocalRootProject / mimaPreviousArtifacts := Set.empty
+LocalRootProject / publish / skip := true
 
 lazy val interfaces = project
   .in(file("scalafix-interfaces"))
   .settings(
-    Compile / resourceGenerators += Def.task {
+    Compile / resourceGenerators += Def.task[Seq[File]] {
       val props = new java.util.Properties()
       props.put("scalafixVersion", version.value)
       props.put("scalafixStableVersion", stableVersion.value)
@@ -50,14 +57,12 @@ lazy val interfaces = project
     },
     (Compile / javacOptions) ++= List(
       "-Xlint:all,-options",
-      "-Werror"
-    ) ++ {
-      if (System.getProperty("java.version").startsWith("1.8")) Nil
-      else List("--release", "8")
-    },
+      "-Werror",
+      // keep the embedded API usable from applications running on Java 8
+      "--release",
+      "8"
+    ),
     (Compile / doc / javacOptions) := List("-Xdoclint:none"),
-    (Compile / javaHome) := inferJavaHome(),
-    (Compile / doc / javaHome) := inferJavaHome(),
     libraryDependencies += coursierInterfaces,
     moduleName := "scalafix-interfaces",
     crossPaths := false,
@@ -117,6 +122,7 @@ lazy val core3 = project
 lazy val rules = projectMatrix
   .in(file("scalafix-rules"))
   .settings(
+    allowMismatchScala := isScala3.value,
     moduleName := "scalafix-rules",
     description := "Built-in Scalafix rules",
     isFullCrossVersion,
@@ -179,6 +185,7 @@ lazy val reflect3 = project
 lazy val cli = projectMatrix
   .in(file("scalafix-cli"))
   .settings(
+    allowMismatchScala := isScala3.value,
     moduleName := "scalafix-cli",
     isFullCrossVersion,
     libraryDependencies ++= Seq(
@@ -311,6 +318,7 @@ lazy val unit = projectMatrix
       }
     },
     buildInfoPackage := "scalafix.tests",
+    buildInfoObject := "UnitBuildInfo",
     buildInfoKeys := Seq[BuildInfoKey](
       "scalaVersion" -> scalaVersion.value
     )
@@ -346,30 +354,36 @@ lazy val integration = projectMatrix
     // buildInfoKeys (since the macro only accepts TaskKeys)
     buildInfoKeys / fullClasspath :=
       resolve(input, Compile / fullClasspath).value,
-    buildInfoKeys := Seq[BuildInfoKey](
-      "scalametaVersion" -> scalametaV,
-      "scalaVersion" -> scalaVersion.value,
-      "baseDirectory" ->
-        (ThisBuild / baseDirectory).value,
-      "resourceDirectory" ->
-        (Compile / resourceDirectory).value,
-      "semanticClasspath" ->
-        Seq((Compile / semanticdbTargetRoot).value),
-      "sourceroot" ->
-        (Compile / sourceDirectory).value,
-      "classDirectory" ->
-        (Compile / classDirectory).value,
-      BuildInfoKey.map(buildInfoKeys / fullClasspath) { case (_, v) =>
-        "inputClasspath" -> v
-      },
-      "inputSemanticClasspath" ->
-        Seq(resolve(input, Compile / semanticdbTargetRoot).value),
-      "inputSourceroot" ->
-        resolve(input, Compile / sourceDirectory).value,
-      "outputSourceroot" ->
-        resolve(output, Compile / sourceDirectory).value
-    ),
-    Test / test := (Test / test)
+    buildInfoKeys := {
+      val converter = fileConverter.value
+      Seq[BuildInfoKey](
+        "scalametaVersion" -> scalametaV,
+        "scalaVersion" -> scalaVersion.value,
+        "baseDirectory" ->
+          (ThisBuild / baseDirectory).value,
+        "resourceDirectory" ->
+          (Compile / resourceDirectory).value,
+        "semanticClasspath" ->
+          Seq((Compile / semanticdbTargetRoot).value),
+        "sourceroot" ->
+          (Compile / sourceDirectory).value,
+        "classDirectory" ->
+          (Compile / classDirectory).value,
+        // the ascription steers `/` overload resolution away from Entry
+        BuildInfoKey.map(buildInfoKeys / fullClasspath: TaskKey[Classpath]) {
+          case (_, v) =>
+            // render files rather than HashedVirtualFileRef ids
+            "inputClasspath" -> v.map(a => converter.toPath(a.data).toFile())
+        },
+        "inputSemanticClasspath" ->
+          Seq(resolve(input, Compile / semanticdbTargetRoot).value),
+        "inputSourceroot" ->
+          resolve(input, Compile / sourceDirectory).value,
+        "outputSourceroot" ->
+          resolve(output, Compile / sourceDirectory).value
+      )
+    },
+    Test / test := (Test / testFull)
       .dependsOn(
         (resolve(cli, publishLocalTransitive) +: cli.projectRefs
           // always publish Scala 3 artifacts to test Scala 3 minor version fallbacks
@@ -395,9 +409,10 @@ lazy val expect = projectMatrix
   .in(file("scalafix-tests/expect"))
   .settings(
     noPublishAndNoMima,
-    Test / resourceGenerators += Def.task {
+    Test / resourceGenerators += Def.task[Seq[File]] {
       // make sure the output can be compiled
       val _ = TargetAxis.resolve(output, Compile / compile).value
+      val converter = fileConverter.value
 
       // copy-pasted code from ScalafixTestkitPlugin to avoid cyclic dependencies between build and sbt-scalafix.
       val props = new java.util.Properties()
@@ -412,7 +427,7 @@ lazy val expect = projectMatrix
         TargetAxis
           .resolve(input, Compile / fullClasspath)
           .value
-          .map(_.data)
+          .map(ref => converter.toPath(ref.data).toFile())
       )
       put(
         "inputSourceDirectories",
