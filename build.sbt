@@ -301,6 +301,7 @@ lazy val unit = projectMatrix
       }
     },
     buildInfoPackage := "scalafix.tests",
+    buildInfoObject := "UnitBuildInfo",
     buildInfoKeys := Seq[BuildInfoKey](
       "scalaVersion" -> scalaVersion.value
     )
