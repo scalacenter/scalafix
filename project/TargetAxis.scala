@@ -1,7 +1,5 @@
-import sbt._
-import sbt.Keys._
-import sbt.internal.ProjectMatrix
-import sbtprojectmatrix.ProjectMatrixPlugin.autoImport._
+import sbt.*
+import sbt.Keys.*
 import scala.reflect.ClassTag
 
 /**
@@ -24,7 +22,7 @@ case class TargetAxis(scalaVersion: String, xsource3: Boolean = false)
       (if (xsource3) Seq(Xsource3Axis) else Seq())
 
   /** Settings the targeted project should have */
-  private def settings: Seq[Setting[_]] =
+  private def settings: Seq[Setting[?]] =
     if (xsource3)
       Seq(
         scalacOptions += "-Xsource:3",

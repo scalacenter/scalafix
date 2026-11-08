@@ -3,7 +3,7 @@
 ## Project Overview
 
 Scalafix is a refactoring and linting tool for Scala. It supports syntactic and
-SemanticDB-based rules and uses an sbt-projectmatrix build to test and publish
+SemanticDB-based rules and uses sbt 2's built-in project matrix to test and publish
 artifacts across Scala compiler versions.
 
 Main modules:
@@ -24,7 +24,9 @@ workaround in `build.sbt` before changing this arrangement.
 
 ## Build Architecture
 
-### sbt-projectmatrix
+### sbt project matrix
+
+sbt 2's built-in project matrix is used in this build.
 
 Most modules are `ProjectMatrix` definitions in `build.sbt`; they generate
 separate sbt projects for the configured Scala compiler versions. Project IDs

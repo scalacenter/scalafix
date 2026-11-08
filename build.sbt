@@ -122,6 +122,7 @@ lazy val core3 = project
 lazy val rules = projectMatrix
   .in(file("scalafix-rules"))
   .settings(
+    allowMismatchScala := isScala3.value,
     moduleName := "scalafix-rules",
     description := "Built-in Scalafix rules",
     isFullCrossVersion,
@@ -184,6 +185,7 @@ lazy val reflect3 = project
 lazy val cli = projectMatrix
   .in(file("scalafix-cli"))
   .settings(
+    allowMismatchScala := isScala3.value,
     moduleName := "scalafix-cli",
     isFullCrossVersion,
     libraryDependencies ++= Seq(
@@ -352,30 +354,36 @@ lazy val integration = projectMatrix
     // buildInfoKeys (since the macro only accepts TaskKeys)
     buildInfoKeys / fullClasspath :=
       resolve(input, Compile / fullClasspath).value,
-    buildInfoKeys := Seq[BuildInfoKey](
-      "scalametaVersion" -> scalametaV,
-      "scalaVersion" -> scalaVersion.value,
-      "baseDirectory" ->
-        (ThisBuild / baseDirectory).value,
-      "resourceDirectory" ->
-        (Compile / resourceDirectory).value,
-      "semanticClasspath" ->
-        Seq((Compile / semanticdbTargetRoot).value),
-      "sourceroot" ->
-        (Compile / sourceDirectory).value,
-      "classDirectory" ->
-        (Compile / classDirectory).value,
-      BuildInfoKey.map(buildInfoKeys / fullClasspath) { case (_, v) =>
-        "inputClasspath" -> v
-      },
-      "inputSemanticClasspath" ->
-        Seq(resolve(input, Compile / semanticdbTargetRoot).value),
-      "inputSourceroot" ->
-        resolve(input, Compile / sourceDirectory).value,
-      "outputSourceroot" ->
-        resolve(output, Compile / sourceDirectory).value
-    ),
-    Test / test := (Test / test)
+    buildInfoKeys := {
+      val converter = fileConverter.value
+      Seq[BuildInfoKey](
+        "scalametaVersion" -> scalametaV,
+        "scalaVersion" -> scalaVersion.value,
+        "baseDirectory" ->
+          (ThisBuild / baseDirectory).value,
+        "resourceDirectory" ->
+          (Compile / resourceDirectory).value,
+        "semanticClasspath" ->
+          Seq((Compile / semanticdbTargetRoot).value),
+        "sourceroot" ->
+          (Compile / sourceDirectory).value,
+        "classDirectory" ->
+          (Compile / classDirectory).value,
+        // the ascription steers `/` overload resolution away from Entry
+        BuildInfoKey.map(buildInfoKeys / fullClasspath: TaskKey[Classpath]) {
+          case (_, v) =>
+            // render files rather than HashedVirtualFileRef ids
+            "inputClasspath" -> v.map(a => converter.toPath(a.data).toFile())
+        },
+        "inputSemanticClasspath" ->
+          Seq(resolve(input, Compile / semanticdbTargetRoot).value),
+        "inputSourceroot" ->
+          resolve(input, Compile / sourceDirectory).value,
+        "outputSourceroot" ->
+          resolve(output, Compile / sourceDirectory).value
+      )
+    },
+    Test / test := (Test / testFull)
       .dependsOn(
         (resolve(cli, publishLocalTransitive) +: cli.projectRefs
           // always publish Scala 3 artifacts to test Scala 3 minor version fallbacks
@@ -404,6 +412,7 @@ lazy val expect = projectMatrix
     Test / resourceGenerators += Def.task[Seq[File]] {
       // make sure the output can be compiled
       val _ = TargetAxis.resolve(output, Compile / compile).value
+      val converter = fileConverter.value
 
       // copy-pasted code from ScalafixTestkitPlugin to avoid cyclic dependencies between build and sbt-scalafix.
       val props = new java.util.Properties()
@@ -418,7 +427,7 @@ lazy val expect = projectMatrix
         TargetAxis
           .resolve(input, Compile / fullClasspath)
           .value
-          .map(_.data)
+          .map(ref => converter.toPath(ref.data).toFile())
       )
       put(
         "inputSourceDirectories",

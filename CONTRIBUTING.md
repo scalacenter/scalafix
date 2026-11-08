@@ -48,7 +48,7 @@ sbt shell.
 > expect3_3_6Target3_3_6 / testOnly -- -z ProcedureSyntax
 ```
 
-[sbt-projectmatrix](https://github.com/sbt/sbt-projectmatrix) is used to
+sbt 2's built-in project matrix is used to
 generate several sbt projects `expectTargetY` with the same source code,
 but for a combination of Scala versions:
 - used for compiling the framework and rules (`X`)

@@ -58,7 +58,7 @@ scalafix
 - `tests`: a directory containing a single test suite to configure
   `scalafix-testkit`.
   
-[sbt-projectmatrix](https://github.com/sbt/sbt-projectmatrix) is used to generate
+sbt 2's built-in project matrix is used to generate
 several sub-projects for each directory.
 - `rules` is set up to cross-publish against all Scala binary versions for which
   [`scalafix-core`](https://mvnrepository.com/artifact/ch.epfl.scala/scalafix-core)
