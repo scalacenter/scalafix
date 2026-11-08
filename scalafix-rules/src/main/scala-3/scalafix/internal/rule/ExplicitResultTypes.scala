@@ -2,6 +2,7 @@ package scalafix.internal.rule
 
 import scala.util.Failure
 import scala.util.Success
+import scala.util.control.NonFatal
 
 import scala.meta.*
 
@@ -120,7 +121,7 @@ final class ExplicitResultTypes(
       implicit val printer = new Scala3Printer(pcTypeInferrer)
       unsafeFix()
     } catch {
-      case _: Throwable if !config.fatalWarnings =>
+      case NonFatal(_) if !config.fatalWarnings =>
         Patch.empty
     }
 
