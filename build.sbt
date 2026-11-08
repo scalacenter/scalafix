@@ -11,7 +11,9 @@ inThisBuild(
 )
 
 Global / cancelable := true
-noPublishAndNoMima
+LocalRootProject / mimaReportBinaryIssues := {}
+LocalRootProject / mimaPreviousArtifacts := Set.empty
+LocalRootProject / publish / skip := true
 
 lazy val interfaces = project
   .in(file("scalafix-interfaces"))
