@@ -63,10 +63,21 @@ abstract class BaseSemanticSuite(filename: String)
 
   override def beforeAll(): Unit = {
     val dirs =
-      scalafix.tests.BuildInfo.semanticClasspath.map(AbsolutePath.apply)
+      scalafix.tests.BuildInfo.semanticClasspath.map(AbsolutePath.apply).toList
+    val classpath = Classpaths.withDirectories(dirs)
+    // Classpaths.withDirectories only keeps jars from the runtime classpath,
+    // so explicitly expose the classes of the semanticdb documents to the
+    // symbol table for global symbols to resolve
+    val symtab = ClasspathOps.newSymbolTable(
+      Classpaths.withDirectories(
+        dirs :+ AbsolutePath(BuildInfo.classDirectory)
+      )
+    )
     _db = LegacyInMemorySemanticdbIndex.load(
-      Classpaths.withDirectories(dirs.toList),
-      PathIO.workingDirectory
+      classpath,
+      PathIO.workingDirectory,
+      symtab,
+      ScalaVersion.scala2
     )
     _input = _db.inputs
       .collectFirst {
