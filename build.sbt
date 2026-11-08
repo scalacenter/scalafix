@@ -11,6 +11,21 @@ inThisBuild(
 )
 
 Global / cancelable := true
+// sbt 2 defaults to exporting packaged jars on the inter-project classpath.
+// That breaks this build in two ways:
+// - target/out/**/*.jar are symlinks to extension-less blobs of the sbt cache
+//   (cas/sha256-<hash>-<size>), and the in-process test class loader resolves
+//   symlinks (sbt/sbt#9472). RuleCompilerClasspath hands that runtime
+//   classpath to scalac/dotty, whose AbstractFile.getDirectory silently drops
+//   any file not named *.jar or *.zip, so rules compiled from source in tests
+//   do not see scalafix-core & co.
+// - `compat-metaconfig-macros` relies on its `metaconfig.generic` package
+//   shadowing the Scala 2.13 macros. On conflicting top-level definitions,
+//   the Scala 3 compiler keeps the one from the youngest class file, and fails
+//   on a tie: packaged by sbt, both jars stamp all entries with the default
+//   packageTimestamp (2010-01-01), while class files are always younger.
+// Keep exporting class directories, as sbt 1 did.
+Global / exportJars := false
 LocalRootProject / mimaReportBinaryIssues := {}
 LocalRootProject / mimaPreviousArtifacts := Set.empty
 LocalRootProject / publish / skip := true
