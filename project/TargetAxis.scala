@@ -54,7 +54,7 @@ object TargetAxis {
   ): Def.Initialize[Task[T]] =
     Def.taskDyn {
       val project = lookup(matrix, virtualAxes.value)
-      Def.task((project / key).value)
+      Def.task((LocalProject(project.id) / key).value)
     }
 
   /**
@@ -67,7 +67,7 @@ object TargetAxis {
   ): Def.Initialize[T] =
     Def.settingDyn {
       val project = lookup(matrix, virtualAxes.value)
-      Def.setting((project / key).value)
+      Def.setting((LocalProject(project.id) / key).value)
     }
 
   /**

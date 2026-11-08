@@ -33,7 +33,7 @@ LocalRootProject / publish / skip := true
 lazy val interfaces = project
   .in(file("scalafix-interfaces"))
   .settings(
-    Compile / resourceGenerators += Def.task {
+    Compile / resourceGenerators += Def.task[Seq[File]] {
       val props = new java.util.Properties()
       props.put("scalafixVersion", version.value)
       props.put("scalafixStableVersion", stableVersion.value)
@@ -401,7 +401,7 @@ lazy val expect = projectMatrix
   .in(file("scalafix-tests/expect"))
   .settings(
     noPublishAndNoMima,
-    Test / resourceGenerators += Def.task {
+    Test / resourceGenerators += Def.task[Seq[File]] {
       // make sure the output can be compiled
       val _ = TargetAxis.resolve(output, Compile / compile).value
 

@@ -182,7 +182,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     ): Def.Initialize[T] =
       Def.settingDyn {
         val project = lookup(matrix, scalaVersion.value)
-        Def.setting((project / key).value)
+        Def.setting((LocalProject(project.id) / key).value)
       }
 
     /**
@@ -194,7 +194,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     ): Def.Initialize[Task[T]] =
       Def.taskDyn {
         val project = lookup(matrix, scalaVersion.value)
-        Def.task((project / key).value)
+        Def.task((LocalProject(project.id) / key).value)
       }
 
   }
