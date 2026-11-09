@@ -86,6 +86,22 @@ prefer `testOnly` (or `testQuick`) when a focused test is available. The
 `scalafix.internal.tests.utils.SkipWindows`; use it for Windows-compatible
 coverage.
 
+sbt 2 runs through the sbtn native client attached to a long-lived background
+server daemon, and test execution is incremental and cached on disk, so both
+survive `sbt` invocations (and `sbt shutdownall`). Consequences:
+- `test` delegates to `testQuick`, which re-runs only tests that failed or
+  whose inputs changed. A clean re-run of an unchanged project therefore
+  reports `No tests to run` (`Total 0`) instead of a failure; that is
+  expected, and it is fast.
+- `testOnly` re-runs its selected tests, and `testFull` runs the whole suite
+  unconditionally (it accepts no filters). Use `testFull` when a full run is
+  required.
+- The `integration` projects redefine `Test / test` as `Test / testFull`, so
+  `integration / test` always runs the full suite; the other projects (for
+  example `unit` and `expect`) keep the incremental `test`.
+- `sbt --server` runs the build in the foreground instead of through the
+  background daemon.
+
 For a rule expectation, choose an `expect` project whose compiler/target pair
 matches the behavior under test. If a command copied from old docs no longer
 resolves, check `sbt projects` and use the current generated project ID rather
