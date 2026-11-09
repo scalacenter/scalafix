@@ -388,7 +388,7 @@ lazy val integration = projectMatrix
         (resolve(cli, publishLocalTransitive) +: cli.projectRefs
           // always publish Scala 3 artifacts to test Scala 3 minor version fallbacks
           .collect { case p @ LocalProject(n) if n.startsWith("cli3") => p }
-          .map(_ / publishLocalTransitive))*
+          .map(_ / publishLocalTransitive)) *
       )
       .value,
     Test / testWindows := (Test / testWindows)
@@ -396,7 +396,7 @@ lazy val integration = projectMatrix
         (resolve(cli, publishLocalTransitive) +: cli.projectRefs
           // always publish Scala 3 artifacts to test Scala 3 minor version fallbacks
           .collect { case p @ LocalProject(n) if n.startsWith("cli3") => p }
-          .map(_ / publishLocalTransitive))*
+          .map(_ / publishLocalTransitive)) *
       )
       .value
   )
