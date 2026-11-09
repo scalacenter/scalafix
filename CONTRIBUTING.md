@@ -29,23 +29,23 @@ sbt shell.
 
 ```sh
 # Fast unit tests for core, rules, reflect, cli & testkit.
-> unit3_3_6 / test
+> unit3_3_9 / test
 
 # Integration tests for core, rules, reflect, cli & testkit.
 # Contains a lot of different test suites, so it's recommended
 # to use testOnly and/or testQuick.
-> integration3_3_6 / test
+> integration3_3_9 / test
 
 # Use testWindows to exclude tests that are not expected to succeed
 # on that OS.
-> unit3_3_6 / testWindows
-> integration3_3_6 / testWindows
+> unit3_3_9 / testWindows
+> integration3_3_9 / testWindows
 
 # Only run tests for built-in rules, using scalafix-testkit.
-> expect3_3_6Target3_3_6 / test
+> expect3_3_9Target3_3_9 / test
 
 # Only run ProcedureSyntax unit tests.
-> expect3_3_6Target3_3_6 / testOnly -- -z ProcedureSyntax
+> expect3_3_9Target3_3_9 / testOnly -- -z ProcedureSyntax
 ```
 
 sbt 2's built-in project matrix is used to
