@@ -13,7 +13,6 @@ import sbtversionpolicy.SbtVersionPolicyPlugin.autoImport.*
 import scalafix.sbt.ScalafixPlugin.autoImport.*
 import com.github.sbt.sbtghpages.GhpagesKeys
 import scala.util.Properties
-import scala.util.Try
 
 object ScalafixBuild extends AutoPlugin with GhpagesKeys {
   override def trigger = allRequirements
@@ -48,31 +47,20 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
         .filter(isSupportedOnRuntimeJavaVersion)
     }
     lazy val cliScalaVersionsWithTargets: Seq[(String, TargetAxis)] =
-      cliScalaVersions.map(sv => (sv, TargetAxis(sv))) ++
-        cliScalaVersions.intersect(scala2Versions).flatMap { sv =>
-          def previousVersions(scalaVersion: String): Seq[String] = {
-            val split = scalaVersion.split('.')
-            val binaryVersion = split.take(2).mkString(".")
-            val compilerVersion = Try(split.last.toInt).toOption
-            val previousPatchVersions =
-              compilerVersion
-                .map(version => List.range(version - 2, version).filter(_ >= 0))
-                .getOrElse(Nil)
-            previousPatchVersions
-              .map { patch => s"$binaryVersion.$patch" }
-          }
-
-          val prevVersions = previousVersions(sv).map(prev => TargetAxis(prev))
-          val scala3FromScala2 = TargetAxis(scala3Next)
-          val xsource3 = TargetAxis(sv, xsource3 = true)
-
-          (prevVersions :+ xsource3).map((sv, _))
-        } ++ cliScalaVersions.intersect(Seq(scala3Next)).flatMap { sv =>
+      cliScalaVersions.flatMap {
+        case sv if scala2Versions.contains(sv) =>
           Seq(
-            (sv, TargetAxis(scala213)),
-            (sv, TargetAxis(scala3LTS))
+            sv -> TargetAxis(sv),
+            sv -> TargetAxis(sv, xsource3 = true)
           )
-        }
+        case sv if sv == scala3Next =>
+          Seq(
+            sv -> TargetAxis(sv),
+            sv -> TargetAxis(scala213),
+            sv -> TargetAxis(scala3LTS)
+          )
+        case sv => Seq(sv -> TargetAxis(sv))
+      }
 
     // Publishing to Ivy is a side effect; a cache hit would skip the publish.
     @transient
