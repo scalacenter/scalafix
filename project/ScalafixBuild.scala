@@ -11,11 +11,10 @@ import sbtbuildinfo.BuildInfoPlugin.autoImport.{given, *}
 import sbtversionpolicy.SbtVersionPolicyPlugin
 import sbtversionpolicy.SbtVersionPolicyPlugin.autoImport.*
 import scalafix.sbt.ScalafixPlugin.autoImport.*
-import com.github.sbt.sbtghpages.GhpagesKeys
 import scala.util.Properties
 import scala.util.Try
 
-object ScalafixBuild extends AutoPlugin with GhpagesKeys {
+object ScalafixBuild extends AutoPlugin {
   override def trigger = allRequirements
   override def requires =
     JvmPlugin &&
