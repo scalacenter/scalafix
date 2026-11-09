@@ -1,3 +1,4 @@
+import scala.language.implicitConversions
 import Dependencies.*
 import sbt.*
 import sbt.Classpaths

@@ -76,7 +76,7 @@ lazy val interfaces = project
 // TODO: after replacing with metaconfig_3, remove -Wconf filter in ScalafixBuild
 lazy val `compat-metaconfig-macros` = projectMatrix
   .settings(
-    libraryDependencies += metaconfig cross CrossVersion.for3Use2_13
+    libraryDependencies += metaconfig.cross(CrossVersion.for3Use2_13)
   )
   .defaultAxes(VirtualAxis.jvm)
   .jvmPlatform(cliScalaVersions)
@@ -388,7 +388,7 @@ lazy val integration = projectMatrix
         (resolve(cli, publishLocalTransitive) +: cli.projectRefs
           // always publish Scala 3 artifacts to test Scala 3 minor version fallbacks
           .collect { case p @ LocalProject(n) if n.startsWith("cli3") => p }
-          .map(_ / publishLocalTransitive)): _*
+          .map(_ / publishLocalTransitive))*
       )
       .value,
     Test / testWindows := (Test / testWindows)
@@ -396,7 +396,7 @@ lazy val integration = projectMatrix
         (resolve(cli, publishLocalTransitive) +: cli.projectRefs
           // always publish Scala 3 artifacts to test Scala 3 minor version fallbacks
           .collect { case p @ LocalProject(n) if n.startsWith("cli3") => p }
-          .map(_ / publishLocalTransitive)): _*
+          .map(_ / publishLocalTransitive))*
       )
       .value
   )
