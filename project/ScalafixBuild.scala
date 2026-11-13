@@ -240,7 +240,12 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
   )
 
   private val PreviousScalaVersion: Map[String, Option[String]] = Map(
+    "3.10.1" -> Some("3.10.0")
   )
+
+  // coursier-versions treats any plain literal after a `-` as a pre-release, which is
+  // only compatible with itself; these Maven suffixes denote release flavors instead
+  private val VersionWithReleaseFlavor = "(.+)-(?:jre|r)".r
 
   override def buildSettings: Seq[Setting[?]] = List(
     // https://github.com/sbt/sbt/issues/5568#issuecomment-1094380636
@@ -249,13 +254,15 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
     versionPolicyIgnoredInternalDependencyVersions :=
       Some("^\\d+\\.\\d+\\.\\d+\\+\\d+".r),
     versionScheme := Some("early-semver"),
+    versionPolicyModuleVersionExtractor := Function.unlift { (m: ModuleID) =>
+      m.revision match {
+        case VersionWithReleaseFlavor(v) => Some(v)
+        case _ => None
+      }
+    },
     libraryDependencySchemes ++= Seq(
       // Scala 3 compiler
-      orgScalaLangMod % "scala-asm" % VersionScheme.Always,
-      "org.eclipse.lsp4j" % "org.eclipse.lsp4j" % VersionScheme.Always,
-      "org.eclipse.lsp4j" % "org.eclipse.lsp4j.jsonrpc" % VersionScheme.Always,
-      // coursier-versions always return false for the *.*.*.*-r pattern jgit uses
-      Dependencies.jgit.withRevision(VersionScheme.Always)
+      orgScalaLangMod % "scala-asm" % VersionScheme.Always
     )
   )
 

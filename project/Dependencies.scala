@@ -14,7 +14,7 @@ object Dependencies {
   val scala37 = "3.7.4"
   val scala38 = "3.8.4"
   val scala39 = "3.9.0"
-  val scala310 = "3.10.0"
+  val scala310 = "3.10.1"
   val scala3LTS = scala39
   val scala3Next = sys.props.getOrElse("scala3.nightly", scala310)
 
