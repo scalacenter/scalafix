@@ -478,6 +478,143 @@ class CliSyntacticSuite extends BaseCliSuite {
   )
 
   check(
+    name = "lint.ignore suppresses matching diagnostics",
+    originalLayout = s"""/.scalafix.conf
+      |DisableSyntax.noXml = true
+      |lint.ignore = "DisableSyntax.noXml"
+      |/foobar.scala
+      |object Foo { val xml = <a>xml</a> }
+      |""".stripMargin,
+    args = Array("-r", "DisableSyntax", "foobar.scala"),
+    expectedLayout = s"""/.scalafix.conf
+      |DisableSyntax.noXml = true
+      |lint.ignore = "DisableSyntax.noXml"
+      |/foobar.scala
+      |object Foo { val xml = <a>xml</a> }
+      |""".stripMargin,
+    expectedExit = ExitStatus.Ok,
+    outputAssert = { out =>
+      assert(!out.contains("DisableSyntax.noXml"), out)
+    }
+  )
+
+  check(
+    name = "lint.ignore keeps non-matching diagnostics",
+    originalLayout = s"""/.scalafix.conf
+      |lint.ignore = "LintWarning.other"
+      |/foobar.scala
+      |$original""".stripMargin,
+    args = Array(
+      "-r",
+      "scala:scalafix.test.cli.LintWarning",
+      "foobar.scala"
+    ),
+    expectedLayout = s"""/.scalafix.conf
+      |lint.ignore = "LintWarning.other"
+      |/foobar.scala
+      |$original""".stripMargin,
+    expectedExit = ExitStatus.Ok,
+    outputAssert = { out =>
+      assert(out.contains("Warning!"), out)
+    }
+  )
+
+  check(
+    name = "lint.info downgrades diagnostics",
+    originalLayout = s"""/.scalafix.conf
+      |lint.info = "LintError.failure"
+      |/foobar.scala
+      |$original""".stripMargin,
+    args = Array(
+      "-r",
+      "scala:scalafix.test.cli.LintError",
+      "foobar.scala"
+    ),
+    expectedLayout = s"""/.scalafix.conf
+      |lint.info = "LintError.failure"
+      |/foobar.scala
+      |$original""".stripMargin,
+    expectedExit = ExitStatus.Ok,
+    outputAssert = { out =>
+      assert(out.contains("info:"), out)
+    }
+  )
+
+  check(
+    name = "lint.warning downgrades diagnostics",
+    originalLayout = s"""/.scalafix.conf
+      |lint.warning = "LintError.failure"
+      |/foobar.scala
+      |$original""".stripMargin,
+    args = Array(
+      "-r",
+      "scala:scalafix.test.cli.LintError",
+      "foobar.scala"
+    ),
+    expectedLayout = s"""/.scalafix.conf
+      |lint.warning = "LintError.failure"
+      |/foobar.scala
+      |$original""".stripMargin,
+    expectedExit = ExitStatus.Ok,
+    outputAssert = { out =>
+      assert(out.contains("warning:"), out)
+    }
+  )
+
+  check(
+    name = "lint.ignore respects include and exclude filters",
+    originalLayout = s"""/.scalafix.conf
+      |lint.ignore = {
+      |  includes = "Lint.*"
+      |  excludes = "LintError.*"
+      |}
+      |/foobar.scala
+      |$original""".stripMargin,
+    args = Array(
+      "-r",
+      "scala:scalafix.test.cli.LintError",
+      "-r",
+      "scala:scalafix.test.cli.LintWarning",
+      "foobar.scala"
+    ),
+    expectedLayout = s"""/.scalafix.conf
+      |lint.ignore = {
+      |  includes = "Lint.*"
+      |  excludes = "LintError.*"
+      |}
+      |/foobar.scala
+      |$original""".stripMargin,
+    expectedExit = ExitStatus.LinterError,
+    outputAssert = { out =>
+      assert(out.contains("Error!"), out)
+      assert(!out.contains("Warning!"), out)
+    }
+  )
+
+  check(
+    name = "lint.ignore takes precedence over severity overrides",
+    originalLayout = s"""/.scalafix.conf
+      |lint.error = "LintError.failure"
+      |lint.ignore = "LintError.failure"
+      |/foobar.scala
+      |$original""".stripMargin,
+    args = Array(
+      "-r",
+      "scala:scalafix.test.cli.LintError",
+      "foobar.scala"
+    ),
+    expectedLayout = s"""/.scalafix.conf
+      |lint.error = "LintError.failure"
+      |lint.ignore = "LintError.failure"
+      |/foobar.scala
+      |$original""".stripMargin,
+    expectedExit = ExitStatus.Ok,
+    outputAssert = { out =>
+      assert(!out.contains("Error!"), out)
+    }
+  )
+
+  check(
     name = "--exclude is respected",
     originalLayout = s"""|/ignoreme.scala
       |$original
