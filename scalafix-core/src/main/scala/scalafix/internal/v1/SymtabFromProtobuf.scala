@@ -1,6 +1,5 @@
 package scalafix.internal.v1
 
-import scala.meta.internal.semanticdb.XtensionSemanticdbScope
 import scala.meta.internal.{semanticdb => s}
 
 import scalafix.v1._
@@ -20,7 +19,7 @@ final class SymtabFromProtobuf(symtab: Symtab) {
       if (sc.hardlinks.isEmpty) {
         sc.symlinks.flatMap(sym => symtab.info(Symbol(sym))).toList
       } else {
-        sc.infos.iterator.map(i => new SymbolInformation(i)(symtab)).toList
+        sc.hardlinks.iterator.map(i => new SymbolInformation(i)(symtab)).toList
       }
   }
 
