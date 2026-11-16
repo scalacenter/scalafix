@@ -123,6 +123,26 @@ class SignatureSuite extends FunSuite {
     returnType = s.NoType
   )
 
+  test("constructor without parameters") {
+    // class A()
+    val obtained = readers(
+      ctor(s.MethodSignature(Some(s.Scope()), List(s.Scope()), s.NoType)),
+      Nil
+    )
+    // TODO: `Pretty` prints `<no type>` as a constructor's return type
+    assertEquals(obtained.signature, "(): <no type>")
+    assertEquals(obtained.v0, "")
+  }
+
+  test("constructor without clauses") {
+    // a Java constructor without parameters
+    val obtained =
+      readers(ctor(s.MethodSignature(Some(s.Scope()), Nil, s.NoType)), Nil)
+    // TODO: `Pretty` prints `<no type>` as a constructor's return type
+    assertEquals(obtained.signature, ": <no type>")
+    assertEquals(obtained.v0, "")
+  }
+
   test("constructor with an implicit clause") {
     // class A(x: B)(implicit o: C)
     val x = ctor.param("x", "_empty_/B#")
