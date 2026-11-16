@@ -137,9 +137,10 @@ class PrettyTypeSuite extends BasePrettyTypeSuite {
       toTree(info(s.MethodSignature(Some(s.Scope()), paramss, unit)), k),
       "def getOrElse(k: Int): Unit"
     )
-    // dotc's form; TODO: `PrettyType` fails on it
-    intercept[PrettyType#TypeToTreeError](
-      toTree(info(s.MethodSignature(None, paramss, unit)), k)
+    // dotc's form
+    assertNoDiff(
+      toTree(info(s.MethodSignature(None, paramss, unit)), k),
+      "def getOrElse(k: Int): Unit"
     )
   }
 
@@ -165,12 +166,11 @@ class PrettyTypeSuite extends BasePrettyTypeSuite {
     }
     val using =
       SymbolInformation.Property.GIVEN.value | SymbolInformation.Property.IMPLICIT.value
-    // TODO: `PrettyType` drops `implicit` or `using`
     assertNoDiff(
       obtained(SymbolInformation.Property.IMPLICIT.value),
-      "def f(x: Int)(o: Long): Unit"
+      "def f(x: Int)(implicit o: Long): Unit"
     )
-    assertNoDiff(obtained(using), "def f(x: Int)(o: Long): Unit")
+    assertNoDiff(obtained(using), "def f(x: Int)(using o: Long): Unit")
   }
 
   test("constructor with an implicit clause") {
@@ -190,10 +190,9 @@ class PrettyTypeSuite extends BasePrettyTypeSuite {
     )
     val sig =
       s.MethodSignature(Some(s.Scope()), List(scope(x), scope(o)), s.NoType)
-    // TODO: `PrettyType` drops `implicit` or `using`
     assertNoDiff(
       toTree(sinfo(ctor, SymbolInformation.Kind.CONSTRUCTOR, sig), x, o),
-      "(x: Int)(o: Long)"
+      "(x: Int)(implicit o: Long)"
     )
   }
 
@@ -211,10 +210,9 @@ class PrettyTypeSuite extends BasePrettyTypeSuite {
       s.ValueSignature(unit),
       SymbolInformation.Property.VAL.value
     )
-    // TODO: `PrettyType` fails on dotc's form of a method
-    intercept[PrettyType#TypeToTreeError](toTree(f))
-    intercept[PrettyType#TypeToTreeError](toSingletonType(f))
-    intercept[PrettyType#TypeToTreeError](toTree(a))
+    assertNoDiff(toTree(f), "def f: Unit")
+    assertNoDiff(toSingletonType(f), "Unit")
+    assertNoDiff(toTree(a), "val a: Unit")
   }
 
   test("dotc's form of a var") {
@@ -230,8 +228,7 @@ class PrettyTypeSuite extends BasePrettyTypeSuite {
       toTree(info(s.MethodSignature(Some(s.Scope()), Nil, unit))),
       "var p: Unit"
     )
-    // TODO: `PrettyType` fails on dotc's form of a signature
-    intercept[PrettyType#TypeToTreeError](toTree(info(s.ValueSignature(unit))))
+    assertNoDiff(toTree(info(s.ValueSignature(unit))), "var p: Unit")
   }
 
   test("dotc's form of an inline def") {
@@ -247,9 +244,9 @@ class PrettyTypeSuite extends BasePrettyTypeSuite {
       toTree(info(s.MethodSignature(Some(s.Scope()), Nil, unit))),
       "def i: Unit"
     )
-    // TODO: `PrettyType` fails on dotc's form of a `MACRO`
-    intercept[PrettyType#TypeToTreeError](
-      toTree(info(s.ValueSignature(s.ByNameType(unit))))
+    assertNoDiff(
+      toTree(info(s.ValueSignature(s.ByNameType(unit)))),
+      "def i: Unit"
     )
   }
 
@@ -261,8 +258,7 @@ class PrettyTypeSuite extends BasePrettyTypeSuite {
       s.ClassSignature(scope, List(ref("scala/AnyRef#")), s.NoType, scope)
     )
     assertNoDiff(toTree(info(Some(s.Scope()))), "class C")
-    // TODO: `PrettyType` fails on dotc's form of a signature
-    intercept[PrettyType#TypeToTreeError](toTree(info(None)))
+    assertNoDiff(toTree(info(None)), "class C")
   }
 
   test("dotc's form of a type alias") {
@@ -274,8 +270,7 @@ class PrettyTypeSuite extends BasePrettyTypeSuite {
         s.TypeSignature(tparams, unit, unit)
       )
     assertNoDiff(toTree(info(Some(s.Scope()))), "type T = Unit")
-    // TODO: `PrettyType` fails on dotc's form of a signature
-    intercept[PrettyType#TypeToTreeError](toTree(info(None)))
+    assertNoDiff(toTree(info(None)), "type T = Unit")
   }
 
   test("dotc's form of a bounded type parameter") {
@@ -297,8 +292,7 @@ class PrettyTypeSuite extends BasePrettyTypeSuite {
       )
     }
     assertNoDiff(obtained(Some(s.Scope())), "def f[T <: AnyVal]: Unit")
-    // TODO: `PrettyType` drops the bound
-    assertNoDiff(obtained(None), "def f[T]: Unit")
+    assertNoDiff(obtained(None), "def f[T <: AnyVal]: Unit")
   }
 
   test("refinement member with a hardlinked parameter") {
