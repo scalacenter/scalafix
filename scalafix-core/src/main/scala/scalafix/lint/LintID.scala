@@ -5,7 +5,7 @@ package scalafix.lint
  *
  * The contract of id is that all diagnostics of the same "category" will have
  * the same id. For example, the DisableSyntax rule has a unique ID for each
- * category such as "noSemicolon" or "noTabs".
+ * category such as "semicolons" or "tabs".
  *
  * @param rule
  *   the name of the rule that produced this diagnostic.
