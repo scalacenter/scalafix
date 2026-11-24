@@ -37,7 +37,7 @@ object ScalafixBuild extends AutoPlugin with GhpagesKeys {
         val majorMinor = CrossVersion.partialVersion(scalaVersion).get
 
         majorMinor match {
-          case (2, 12) | (3, 5) | (3, 6) => !isJavaAtLeast("25")
+          case (3, 5) | (3, 6) => !isJavaAtLeast("25")
           case (3, 7) => !isJavaAtLeast("26")
           case _ => true
         }
