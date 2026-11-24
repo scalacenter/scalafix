@@ -53,7 +53,10 @@ object PatchInternals {
       ResultWithContext(ctx.input.text, Nil, Nil, ctx, index) // no patch
     } else {
       val idx = index.getOrElse(v0.SemanticdbIndex.empty)
-      val (patch, lints) = ctx.escapeHatch.filter(patchesByName)(ctx, idx)
+      val (patch, allLints) = ctx.escapeHatch.filter(patchesByName)(ctx, idx)
+      val lints = allLints.filterNot { lint =>
+        ctx.config.lint.isIgnored(lint.id.fullID)
+      }
       val finalPatch = {
         if (suppress) {
           patch.asPatch + SuppressOps.addComments(

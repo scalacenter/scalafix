@@ -12,6 +12,8 @@ case class LintConfig(
     warning: FilterMatcher = FilterMatcher.matchNothing,
     error: FilterMatcher = FilterMatcher.matchNothing
 ) {
+  def isIgnored(key: String): Boolean = ignore.matches(key)
+
   def getConfiguredSeverity(key: String): Option[LintSeverity] =
     Option(key).collect {
       case error() => LintSeverity.Error
