@@ -180,7 +180,7 @@ class PrettyType private (
     case k.PACKAGE =>
       toTermRef(info)
     case _ =>
-      info.signature match {
+      specSignature(info) match {
         case s.MethodSignature(
               Some(tparams),
               paramss: Seq[SemanticdbScope],
@@ -325,6 +325,32 @@ class PrettyType private (
           fail(info)
       }
   }
+
+  /**
+   * Returns the signature of `info` in the form that the SemanticDB
+   * specification defines, with an absent scope as an empty one.
+   */
+  private def specSignature(info: s.SymbolInformation): s.Signature =
+    info.signature match {
+      case sig: s.MethodSignature if sig.typeParameters.isEmpty =>
+        sig.withTypeParameters(s.Scope())
+      // dotc's form of a method without parameter clauses
+      case sig: s.ValueSignature if info.kind.isMethod || info.kind.isMacro =>
+        val returnType = sig.tpe match {
+          case tpe: s.ByNameType => tpe.tpe
+          case tpe => tpe
+        }
+        s.MethodSignature(Some(s.Scope()), Nil, returnType)
+      case sig: s.ClassSignature
+          if sig.typeParameters.isEmpty || sig.declarations.isEmpty =>
+        sig.copy(
+          typeParameters = sig.typeParameters.orElse(Some(s.Scope())),
+          declarations = sig.declarations.orElse(Some(s.Scope()))
+        )
+      case sig: s.TypeSignature if sig.typeParameters.isEmpty =>
+        sig.withTypeParameters(s.Scope())
+      case sig => sig
+    }
 
   def unwrapRepeatedType(tpe: s.Type): s.Type = tpe match {
     case s.RepeatedType(targ) =>
@@ -514,7 +540,7 @@ class PrettyType private (
       if (info.kind.isParameter || info.isVal || info.kind.isObject) {
         Type.Singleton(toTermRef(info))
       } else {
-        info.signature match {
+        specSignature(info) match {
           case sig: s.MethodSignature =>
             toType(sig.returnType)
           case els =>
@@ -632,7 +658,15 @@ class PrettyType private (
   }
 
   def toTermParamClause(scope: s.Scope): Term.ParamClause = {
-    Term.ParamClause(scope.symbols.smap(toTermParam))
+    val params = scope.symbols.iterator.map(info).toList
+    val mod = params match {
+      case head :: _ => // a `using` parameter may also be implicit
+        if (head.isGiven) Some(Mod.Using())
+        else if (head.isImplicit) Some(Mod.Implicit())
+        else None
+      case _ => None
+    }
+    Term.ParamClause(params.map(toTermParam), mod)
   }
 
   def toTypeParamClause(scope: s.Scope): Type.ParamClause = {
@@ -650,7 +684,7 @@ class PrettyType private (
 
   def toTypeParam(info: s.SymbolInformation): Type.Param = {
     require(info.kind.isTypeParameter, info.toString)
-    val (tparams, bounds) = info.signature match {
+    val (tparams, bounds) = specSignature(info) match {
       case s.TypeSignature(Some(typeParameters), lo, hi) =>
         val params =
           if (typeParameters.symlinks.isEmpty) {

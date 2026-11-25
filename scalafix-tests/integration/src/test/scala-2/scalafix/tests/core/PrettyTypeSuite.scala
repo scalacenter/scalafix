@@ -13,6 +13,7 @@ import scala.meta.internal.metacp._
 import scala.meta.internal.semanticdb.Scala._
 import scala.meta.internal.semanticdb.SymbolInformation
 import scala.meta.internal.symtab._
+import scala.meta.internal.{semanticdb => s}
 import scala.meta.io.AbsolutePath
 import scala.meta.io.Classpath
 import scala.meta.metacp.Settings
@@ -71,6 +72,253 @@ class PrettyTypeSuite extends BasePrettyTypeSuite {
       val expectedSyntax = expected.syntax
       assertNoDiff(obtained.syntax, expectedSyntax)
     }
+  }
+
+  private def sinfo(
+      symbol: String,
+      kind: SymbolInformation.Kind,
+      signature: s.Signature,
+      properties: Int = 0
+  ): SymbolInformation =
+    SymbolInformation(
+      symbol = symbol,
+      kind = kind,
+      properties = properties,
+      displayName = symbol.desc.name.value,
+      signature = signature
+    )
+
+  private def tableWith(infos: Seq[SymbolInformation]): SymbolTable = sym =>
+    infos.find(_.symbol == sym).orElse(table.info(sym))
+
+  /** Returns the syntax of `toTree` for `info`, with `params` in the table. */
+  private def toTree(info: SymbolInformation, params: SymbolInformation*) =
+    PrettyType
+      .toTree(
+        info,
+        tableWith(info +: params),
+        QualifyStrategy.Readable,
+        fatalErrors = true
+      )
+      .tree
+      .syntax
+
+  /** Returns the syntax of `toType` for the singleton type of `info`. */
+  private def toSingletonType(info: SymbolInformation) =
+    PrettyType
+      .toType(
+        s.SingleType(s.NoType, info.symbol),
+        tableWith(List(info)),
+        QualifyStrategy.Readable,
+        fatalErrors = true
+      )
+      .tree
+      .syntax
+
+  private def ref(symbol: String) = s.TypeRef(s.NoType, symbol, Nil)
+  private val unit = ref("scala/Unit#")
+  private def scope(infos: SymbolInformation*) = s.Scope(infos.map(_.symbol))
+
+  // def getOrElse(k: Int)[V](d: Long): Unit
+  private val getOrElse = "test/DB#getOrElse()."
+  private val k =
+    sinfo(
+      s"$getOrElse(k)",
+      SymbolInformation.Kind.PARAMETER,
+      s.ValueSignature(ref("scala/Int#"))
+    )
+
+  test("method with one group without a type parameter clause") {
+    // def getOrElse(k: Int): Unit
+    def info(sig: s.Signature) =
+      sinfo(getOrElse, SymbolInformation.Kind.METHOD, sig)
+    val paramss = List(scope(k))
+    assertNoDiff(
+      toTree(info(s.MethodSignature(Some(s.Scope()), paramss, unit)), k),
+      "def getOrElse(k: Int): Unit"
+    )
+    // dotc's form
+    assertNoDiff(
+      toTree(info(s.MethodSignature(None, paramss, unit)), k),
+      "def getOrElse(k: Int): Unit"
+    )
+  }
+
+  test("implicit and using parameter clauses") {
+    // def f(x: Int)(implicit o: Long): Unit, and the same with `using`
+    val f = "test/DB#f()."
+    val x =
+      sinfo(
+        s"$f(x)",
+        SymbolInformation.Kind.PARAMETER,
+        s.ValueSignature(ref("scala/Int#"))
+      )
+    def obtained(properties: Int) = {
+      val o = sinfo(
+        s"$f(o)",
+        SymbolInformation.Kind.PARAMETER,
+        s.ValueSignature(ref("scala/Long#")),
+        properties
+      )
+      val sig =
+        s.MethodSignature(Some(s.Scope()), List(scope(x), scope(o)), unit)
+      toTree(sinfo(f, SymbolInformation.Kind.METHOD, sig), x, o)
+    }
+    val using =
+      SymbolInformation.Property.GIVEN.value | SymbolInformation.Property.IMPLICIT.value
+    assertNoDiff(
+      obtained(SymbolInformation.Property.IMPLICIT.value),
+      "def f(x: Int)(implicit o: Long): Unit"
+    )
+    assertNoDiff(obtained(using), "def f(x: Int)(using o: Long): Unit")
+  }
+
+  test("constructor with an implicit clause") {
+    // class DB(x: Int)(implicit o: Long)
+    val ctor = "test/DB#`<init>`()."
+    val x =
+      sinfo(
+        s"$ctor(x)",
+        SymbolInformation.Kind.PARAMETER,
+        s.ValueSignature(ref("scala/Int#"))
+      )
+    val o = sinfo(
+      s"$ctor(o)",
+      SymbolInformation.Kind.PARAMETER,
+      s.ValueSignature(ref("scala/Long#")),
+      SymbolInformation.Property.IMPLICIT.value
+    )
+    val sig =
+      s.MethodSignature(Some(s.Scope()), List(scope(x), scope(o)), s.NoType)
+    assertNoDiff(
+      toTree(sinfo(ctor, SymbolInformation.Kind.CONSTRUCTOR, sig), x, o),
+      "(x: Int)(implicit o: Long)"
+    )
+  }
+
+  test("dotc's form of a def and a val without clauses") {
+    // def f: Unit and val a: Unit
+    val f =
+      sinfo(
+        "test/DB#f().",
+        SymbolInformation.Kind.METHOD,
+        s.ValueSignature(s.ByNameType(unit))
+      )
+    val a = sinfo(
+      "test/DB#a.",
+      SymbolInformation.Kind.METHOD,
+      s.ValueSignature(unit),
+      SymbolInformation.Property.VAL.value
+    )
+    assertNoDiff(toTree(f), "def f: Unit")
+    assertNoDiff(toSingletonType(f), "Unit")
+    assertNoDiff(toTree(a), "val a: Unit")
+  }
+
+  test("dotc's form of a var") {
+    // var p: Unit
+    def info(sig: s.Signature) =
+      sinfo(
+        "test/DB#p().",
+        SymbolInformation.Kind.METHOD,
+        sig,
+        SymbolInformation.Property.VAR.value
+      )
+    assertNoDiff(
+      toTree(info(s.MethodSignature(Some(s.Scope()), Nil, unit))),
+      "var p: Unit"
+    )
+    assertNoDiff(toTree(info(s.ValueSignature(unit))), "var p: Unit")
+  }
+
+  test("dotc's form of an inline def") {
+    // inline def i: Unit
+    def info(sig: s.Signature) =
+      sinfo(
+        "test/DB#i().",
+        SymbolInformation.Kind.MACRO,
+        sig,
+        SymbolInformation.Property.INLINE.value
+      )
+    assertNoDiff(
+      toTree(info(s.MethodSignature(Some(s.Scope()), Nil, unit))),
+      "def i: Unit"
+    )
+    assertNoDiff(
+      toTree(info(s.ValueSignature(s.ByNameType(unit)))),
+      "def i: Unit"
+    )
+  }
+
+  test("dotc's form of a class without type parameters") {
+    // class C
+    def info(scope: Option[s.Scope]) = sinfo(
+      "test/C#",
+      SymbolInformation.Kind.CLASS,
+      s.ClassSignature(scope, List(ref("scala/AnyRef#")), s.NoType, scope)
+    )
+    assertNoDiff(toTree(info(Some(s.Scope()))), "class C")
+    assertNoDiff(toTree(info(None)), "class C")
+  }
+
+  test("dotc's form of a type alias") {
+    // type T = Unit
+    def info(tparams: Option[s.Scope]) =
+      sinfo(
+        "test/DB#T#",
+        SymbolInformation.Kind.TYPE,
+        s.TypeSignature(tparams, unit, unit)
+      )
+    assertNoDiff(toTree(info(Some(s.Scope()))), "type T = Unit")
+    assertNoDiff(toTree(info(None)), "type T = Unit")
+  }
+
+  test("dotc's form of a bounded type parameter") {
+    // def f[T <: AnyVal]: Unit
+    val f = "test/DB#f()."
+    def obtained(tparams: Option[s.Scope]) = {
+      val T = sinfo(
+        s"$f[T]",
+        SymbolInformation.Kind.TYPE_PARAMETER,
+        s.TypeSignature(tparams, ref("scala/Nothing#"), ref("scala/AnyVal#"))
+      )
+      toTree(
+        sinfo(
+          f,
+          SymbolInformation.Kind.METHOD,
+          s.MethodSignature(Some(scope(T)), Nil, unit)
+        ),
+        T
+      )
+    }
+    assertNoDiff(obtained(Some(s.Scope())), "def f[T <: AnyVal]: Unit")
+    assertNoDiff(obtained(None), "def f[T <: AnyVal]: Unit")
+  }
+
+  test("refinement member with a hardlinked parameter") {
+    // def g: AnyRef { def h(x: Int): Unit }
+    val x = SymbolInformation(
+      symbol = "local1",
+      kind = SymbolInformation.Kind.PARAMETER,
+      displayName = "x",
+      signature = s.ValueSignature(ref("scala/Int#"))
+    )
+    val paramss = List(s.Scope(hardlinks = List(x)))
+    val h = SymbolInformation(
+      symbol = "local2",
+      kind = SymbolInformation.Kind.METHOD,
+      displayName = "h",
+      signature = s.MethodSignature(Some(s.Scope()), paramss, unit)
+    )
+    val tpe =
+      s.StructuralType(ref("scala/AnyRef#"), Some(s.Scope(hardlinks = List(h))))
+    val g = sinfo(
+      "test/DB#g().",
+      SymbolInformation.Kind.METHOD,
+      s.MethodSignature(Some(s.Scope()), Nil, tpe)
+    )
+    // `PrettyType` drops a member with a local symbol
+    assertNoDiff(toTree(g), "def g: AnyRef")
   }
 
 }
