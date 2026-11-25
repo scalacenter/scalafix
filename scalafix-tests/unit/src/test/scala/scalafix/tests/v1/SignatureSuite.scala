@@ -142,8 +142,7 @@ class SignatureSuite extends FunSuite {
       obtained.info,
       "_empty_/A#`<init>`(). => ctor <init>(x: B)(implicit o: C)"
     )
-    // TODO: `LegacyCodePrinter` drops `implicit` or `using`
-    assertEquals(obtained.v0, "(x: B)(o: C)")
+    assertEquals(obtained.v0, "(x: B)(implicit o: C)")
   }
 
   /** `AnyRef { member }`, with `member` as a hardlink. */
@@ -191,7 +190,7 @@ class SignatureSuite extends FunSuite {
     val p = m.param("p", "_empty_/D#").copy(properties = using)
     val paramss =
       List(s.Scope(List(x.symbol)), s.Scope(List(o.symbol, p.symbol)))
-    // TODO: `Pretty` and `LegacyCodePrinter` drop `implicit` or `using`
+    // TODO: `Pretty` drops `implicit` or `using`
     // TODO: metap prints `implicit` before each parameter
     assertEquals(
       readers(m(s.MethodSignature(None, paramss, ret)), List(x, o, p)),
@@ -199,7 +198,7 @@ class SignatureSuite extends FunSuite {
         "MethodSignature(List(), List(List(_empty_/A#f().(x)), List(_empty_/A#f().(o), _empty_/A#f().(p))), R)",
         "(x: B)(o: C,p: D): R",
         "_empty_/A#f(). => method f(x: B)(implicit o: C, implicit p: D): R",
-        "(x: B)(o: C, p: D)R"
+        "(x: B)(using o: C, p: D)R"
       )
     )
   }
@@ -218,8 +217,7 @@ class SignatureSuite extends FunSuite {
       obtained.info,
       "_empty_/A#f(). => method f(x: B)(implicit o: C): R"
     )
-    // TODO: `LegacyCodePrinter` drops `implicit` or `using`
-    assertEquals(obtained.v0, "(x: B)(o: C)R")
+    assertEquals(obtained.v0, "(x: B)(implicit o: C)R")
   }
 
   test("hardlinked parameter of a refinement member") {
@@ -245,8 +243,7 @@ class SignatureSuite extends FunSuite {
       new SymbolInformation(g).toString,
       "_empty_/A#g(). => method g: AnyRef { def h(x: B): R }"
     )
-    // TODO: `LegacyCodePrinter` looks up each parameter in the document
-    intercept[MissingSymbolException](readers(g, Nil))
+    assertEquals(readers(g, Nil).v0, "AnyRef(x: B)R")
   }
 
   test("implicit and using clauses of a refinement member") {
@@ -270,14 +267,15 @@ class SignatureSuite extends FunSuite {
       val sig = s.MethodSignature(Some(s.Scope()), Nil, refinement(h))
       readers(method("g")(sig), Nil).v0
     }
-    // TODO: `LegacyCodePrinter` looks up each parameter in the document
-    intercept[MissingSymbolException](
-      obtained(s.SymbolInformation.Property.IMPLICIT.value)
+    assertEquals(
+      obtained(s.SymbolInformation.Property.IMPLICIT.value),
+      "AnyRef(implicit o: C)R"
     )
-    intercept[MissingSymbolException](
+    assertEquals(
       obtained(
         s.SymbolInformation.Property.GIVEN.value | s.SymbolInformation.Property.IMPLICIT.value
-      )
+      ),
+      "AnyRef(using o: C)R"
     )
   }
 
@@ -302,14 +300,14 @@ class SignatureSuite extends FunSuite {
         assertEquals(param.signature.toString, "C")
       case sig => fail(s"unexpected member: $sig")
     }
-    // TODO: metap and `LegacyCodePrinter` read the parameter from the document
+    // TODO: metap reads the parameter from the document
     assertEquals(
       readers(info, List(x)),
       Readers(
         "MethodSignature(List(), List(List(_empty_/A#g().(x))), AnyRef {local0 => method h(x: B): R})",
         "(x: B): AnyRef {local0 => method h(x: B): R}",
         "_empty_/A#g(). => method g(x: B): AnyRef { def h(x: B): R }",
-        "(x: B)AnyRef(x: B)R"
+        "(x: B)AnyRef(x: C)R"
       )
     )
   }
@@ -331,14 +329,13 @@ class SignatureSuite extends FunSuite {
         s.MethodSignature(tparams, Nil, ret)
       )
     val g = method("g")(s.MethodSignature(Some(s.Scope()), Nil, refinement(h)))
-    // TODO: `LegacyCodePrinter` drops the name of a hardlinked type parameter
     assertEquals(
       readers(g, Nil),
       Readers(
         "MethodSignature(List(), List(), AnyRef {local2 => method h[T]: R})",
         ": AnyRef {local2 => method h[T]: R}",
         "_empty_/A#g(). => method g: AnyRef { def h[T]: R }",
-        "AnyRef[] => R"
+        "AnyRef[T] => R"
       )
     )
   }
@@ -376,14 +373,13 @@ class SignatureSuite extends FunSuite {
       ret
     )
     val h = sinfo("local0", "h", s.SymbolInformation.Kind.METHOD, sig)
-    // TODO: `LegacyCodePrinter` drops the names of local parameters
     assertEquals(
       readers(h, List(h, T, x)),
       Readers(
         "MethodSignature(List(local1), List(List(local2)), R)",
         "[T](x: B): R",
         "local0 => method h[T](x: B): R",
-        "[] => (: B)R"
+        "[T] => (x: B)R"
       )
     )
   }

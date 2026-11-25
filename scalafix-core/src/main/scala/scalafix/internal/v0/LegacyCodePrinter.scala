@@ -7,12 +7,12 @@ import scala.meta.inputs.Position
 import scala.meta.internal.ScalametaInternals
 import scala.meta.internal.semanticdb.Scala._
 import scala.meta.internal.semanticdb.XtensionSemanticdbScope
+import scala.meta.internal.semanticdb.XtensionSemanticdbSymbolInformation
 import scala.meta.internal.{semanticdb => s}
 
 import scalafix.v0
 import scalafix.v0.ResolvedName
 import scalafix.v1
-import scalafix.v1.MissingSymbolException
 import scalafix.v1.SemanticDocument
 
 /**
@@ -27,6 +27,8 @@ class LegacyCodePrinter(doc: SemanticDocument) {
   private def emit(symbol: String): Unit = {
     emitCode(symbol.desc.name.value, symbol)
   }
+  private def emit(info: s.SymbolInformation): Unit =
+    emitCode(info.displayName, info.symbol)
   private def emitCode(code: String, sym: String): Unit = {
     val start = text.length
     text.append(code)
@@ -52,10 +54,39 @@ class LegacyCodePrinter(doc: SemanticDocument) {
     }
   }
 
+  /**
+   * Returns the hardlinks of `scope`, if it has any. Otherwise returns the
+   * document's info of each symlink, or a stub with the name of its descriptor
+   * if the document lacks one.
+   */
+  private def infos(scope: s.Scope): Seq[s.SymbolInformation] =
+    if (scope.hardlinks.nonEmpty) scope.hardlinks
+    else
+      scope.symlinks.map { symbol =>
+        doc.internal.info(v1.Symbol(symbol)) match {
+          case Some(info) => info.info
+          case _ =>
+            val name = symbol.desc.name.value
+            s.SymbolInformation(symbol = symbol, displayName = name)
+        }
+      }
+
+  /** Returns the keyword of a parameter clause. */
+  private def clauseKeyword(params: Seq[s.SymbolInformation]): String =
+    params.headOption match {
+      // a `using` parameter may also be implicit
+      case Some(param) =>
+        if (param.isGiven) "using "
+        else if (param.isImplicit) "implicit "
+        else ""
+      case _ => ""
+    }
+
   private def pprintTypeParameters(scope: Option[s.Scope]): Unit = {
     scope.foreach { scope =>
-      if (scope.symbols.nonEmpty) {
-        mkString("[", scope.symbols, "]")(emit)
+      val tparams = infos(scope)
+      if (tparams.nonEmpty) {
+        mkString("[", tparams, "]")(emit)
         text.append(" => ")
       }
     }
@@ -71,16 +102,11 @@ class LegacyCodePrinter(doc: SemanticDocument) {
         pprintTypeParameters(sig.typeParameters)
 
         sig.parameterLists.foreach { scope =>
-          mkString("(", scope.symbols, ")") { symbol =>
-            emit(symbol)
+          val params = infos(scope)
+          mkString("(" + clauseKeyword(params), params, ")") { info =>
+            emit(info)
             text.append(": ")
-            val sym = v1.Symbol(symbol)
-            doc.internal.info(sym) match {
-              case Some(info) =>
-                pprint(info.info.signature)
-              case None =>
-                throw new MissingSymbolException(sym)
-            }
+            pprint(info.signature)
           }
         }
         pprint(sig.returnType)
