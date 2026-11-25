@@ -90,8 +90,8 @@ lazy val core = projectMatrix
     libraryDependencies ++= Seq(
       googleDiff,
       metaconfig,
-      scalametaFor3Use2_13,
-      semanticdbSharedFor3Use2_13,
+      scalameta,
+      semanticdbShared,
       collectionCompat
     )
   )
@@ -109,13 +109,11 @@ lazy val core3 = project
     scalaVersion := scala33,
     libraryDependencies ++= Seq(
       googleDiff,
-      metaconfig
-    ) ++ Seq(
-      scalametaFor3Use2_13,
-      semanticdbSharedFor3Use2_13
-    ).map { mod =>
-      mod.exclude213((orgLiHaoYi, "sourcecode"), collectionCompat)
-    }
+      metaconfig,
+      scalameta,
+      semanticdbShared,
+      collectionCompat
+    )
   )
   .enablePlugins(BuildInfoPlugin)
 
@@ -176,7 +174,7 @@ lazy val reflect3 = project
       // CrossVersion.for3Use2_13 would only lookup a binary version artifact, but this is published with full version
       semanticdbScalacCore
         .cross(CrossVersion.constant(scala213))
-        .exclude213((orgLiHaoYi, "sourcecode"), collectionCompat),
+        .exclude213(semanticdbShared),
       orgScalaLang %% "scala3-compiler" % scalaVersion.value
     )
   )
@@ -483,7 +481,7 @@ lazy val docs = projectMatrix
       Dependencies.runtimeDepsForBackwardCompatibility
         .map(_.withRevision(VersionScheme.Always)),
     // force eviction of mdoc transitive dependency
-    dependencyOverrides += scalametaFor3Use2_13
+    dependencyOverrides += scalameta
   )
   .defaultAxes(VirtualAxis.jvm)
   .jvmPlatform(scalaVersions = Seq(scala213))
