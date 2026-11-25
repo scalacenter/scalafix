@@ -129,8 +129,7 @@ class SignatureSuite extends FunSuite {
       ctor(s.MethodSignature(Some(s.Scope()), List(s.Scope()), s.NoType)),
       Nil
     )
-    // TODO: `Pretty` prints `<no type>` as a constructor's return type
-    assertEquals(obtained.signature, "(): <no type>")
+    assertEquals(obtained.signature, "()")
     assertEquals(obtained.v0, "")
   }
 
@@ -138,8 +137,7 @@ class SignatureSuite extends FunSuite {
     // a Java constructor without parameters
     val obtained =
       readers(ctor(s.MethodSignature(Some(s.Scope()), Nil, s.NoType)), Nil)
-    // TODO: `Pretty` prints `<no type>` as a constructor's return type
-    assertEquals(obtained.signature, ": <no type>")
+    assertEquals(obtained.signature, "")
     assertEquals(obtained.v0, "")
   }
 
@@ -155,9 +153,7 @@ class SignatureSuite extends FunSuite {
       ctor(s.MethodSignature(Some(s.Scope()), paramss, s.NoType)),
       List(x, o)
     )
-    // TODO: `Pretty` drops `implicit` or `using`
-    // TODO: `Pretty` prints `<no type>` as a constructor's return type
-    assertEquals(obtained.signature, "(x: B)(o: C): <no type>")
+    assertEquals(obtained.signature, "(x: B)(implicit o: C)")
     assertEquals(
       obtained.info,
       "_empty_/A#`<init>`(). => ctor <init>(x: B)(implicit o: C)"
@@ -189,14 +185,13 @@ class SignatureSuite extends FunSuite {
       val paramss = List(s.Scope(List(x.symbol)), s.Scope(List(o.symbol)))
       readers(m(s.MethodSignature(Some(s.Scope()), paramss, ret)), List(x, o))
     }
-    // TODO: `Pretty` drops `implicit` or `using`
     assertEquals(
       signature(s.SymbolInformation.Property.IMPLICIT).signature,
-      "(x: B)(o: C): R"
+      "(x: B)(implicit o: C): R"
     )
     assertEquals(
       signature(s.SymbolInformation.Property.GIVEN).signature,
-      "(x: B)(o: C): R"
+      "(x: B)(using o: C): R"
     )
   }
 
@@ -210,13 +205,12 @@ class SignatureSuite extends FunSuite {
     val p = m.param("p", "_empty_/D#").copy(properties = using)
     val paramss =
       List(s.Scope(List(x.symbol)), s.Scope(List(o.symbol, p.symbol)))
-    // TODO: `Pretty` drops `implicit` or `using`
     // TODO: metap prints `implicit` before each parameter
     assertEquals(
       readers(m(s.MethodSignature(None, paramss, ret)), List(x, o, p)),
       Readers(
         "MethodSignature(List(), List(List(_empty_/A#f().(x)), List(_empty_/A#f().(o), _empty_/A#f().(p))), R)",
-        "(x: B)(o: C,p: D): R",
+        "(x: B)(using o: C,p: D): R",
         "_empty_/A#f(). => method f(x: B)(implicit o: C, implicit p: D): R",
         "(x: B)(using o: C, p: D)R"
       )
