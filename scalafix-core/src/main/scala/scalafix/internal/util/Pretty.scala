@@ -132,6 +132,16 @@ object Pretty {
             )
             .bracketBy(Doc.space + `match` + Doc.space + `{`, `}`)
           normal(t.scrutinee) + cases
+        case t: AppliedType =>
+          val tpe = normal(t.tpe)
+          val ctor = t.tpe match {
+            case _: TypeRef | _: AppliedType | _: SingleType | _: ThisType |
+                _: SuperType | _: ConstantType =>
+              tpe
+            case _ => `(` + tpe + `)`
+          }
+          ctor + `[` +
+            Doc.intercalate(Doc.comma, t.typeArguments.map(normal)) + `]`
       }
     }
     def normal(tpe: SemanticType): Doc = tpe match {
