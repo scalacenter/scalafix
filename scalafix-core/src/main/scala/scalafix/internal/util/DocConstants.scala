@@ -31,4 +31,6 @@ object DocConstants {
   val `with`: Doc = Doc.text("with")
   val `forSome`: Doc = Doc.text("forSome")
   val `match`: Doc = Doc.text("match")
+  val `implicit`: Doc = Doc.text("implicit")
+  val `using`: Doc = Doc.text("using")
 }

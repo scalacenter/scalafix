@@ -156,6 +156,16 @@ object Pretty {
       pretty(parameter.signature)
   }
 
+  /** Returns the keyword of a parameter clause. */
+  private def prettyClauseKeyword(parameters: List[SymbolInformation]): Doc =
+    parameters match {
+      case head :: _ => // a `using` parameter may also be implicit
+        if (head.isGiven) `using` + Doc.space
+        else if (head.isImplicit) `implicit` + Doc.space
+        else Doc.empty
+      case _ => Doc.empty
+    }
+
   def prettyTypeParameter(parameter: SymbolInformation): Doc = {
     Doc.text(parameter.displayName) + pretty(parameter.signature)
   }
@@ -195,14 +205,17 @@ object Pretty {
         if (t.parameterLists.isEmpty) Doc.empty
         else {
           val params = t.parameterLists.map { parameterList =>
-            Doc.intercalate(Doc.comma, parameterList.map(prettyTermParameter))
+            prettyClauseKeyword(parameterList) +
+              Doc.intercalate(Doc.comma, parameterList.map(prettyTermParameter))
           }
           val paramss = Doc.intercalate(`)` + `(`, params)
 
           `(` + paramss + `)`
         }
-      val returnType = pretty(t.returnType)
-      tparams + params + `:` + Doc.space + returnType
+      val returnType =
+        if (t.returnType.isEmpty) Doc.empty
+        else `:` + Doc.space + pretty(t.returnType)
+      tparams + params + returnType
     case t: TypeSignature =>
       val tparams = prettyTypeParameters(t.typeParameters)
       if (t.lowerBound == t.upperBound) {
