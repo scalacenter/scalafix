@@ -92,10 +92,8 @@ class PrettyType private (
     }
     def is(property: s.SymbolInformation.Property): Boolean =
       (info.properties & property.value) != 0
-    def isVal: Boolean = is(p.VAL)
-    def isVar: Boolean = is(p.VAR)
     def isVarSetter: Boolean =
-      isVar && info.displayName.endsWith("_=")
+      info.isVar && info.displayName.endsWith("_=")
   }
   private implicit class XtensionSymbolInfo(sym: String) {
     def toIndeterminateName: Name = Name(info(sym).displayName)
