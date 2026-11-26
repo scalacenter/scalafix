@@ -126,11 +126,11 @@ final class DisableSyntax(config: DisableSyntaxConfig)
             Diagnostic(keyword, s"$keyword is disabled", token.pos)
         }
       case token @ Token.Semicolon() if config.noSemicolons =>
-        Diagnostic("noSemicolons", "semicolons are disabled", token.pos)
+        Diagnostic("semicolons", "semicolons are disabled", token.pos)
       case token @ Token.Tab() if config.noTabs =>
-        Diagnostic("noTabs", "tabs are disabled", token.pos)
+        Diagnostic("tabs", "tabs are disabled", token.pos)
       case token @ Token.Xml.Start() if config.noXml =>
-        Diagnostic("noXml", "xml literals should be avoided", token.pos)
+        Diagnostic("xml", "xml literals should be avoided", token.pos)
       case token: Token.Ident
           if token.value == "asInstanceOf" && config.noAsInstanceOf =>
         val isMatchableCast =
@@ -294,7 +294,7 @@ final class DisableSyntax(config: DisableSyntaxConfig)
           if config.noUniversalEquality =>
         Seq(noUniversalEqualityDiagnostic("!=", t))
     }
-    val FinalizeMatcher = DisableSyntax.FinalizeMatcher("noFinalize")
+    val FinalizeMatcher = DisableSyntax.FinalizeMatcher("finalize")
     doc.tree.bfsCollectEach(DefaultMatcher.orElse(FinalizeMatcher))
   }
 
@@ -306,13 +306,13 @@ final class DisableSyntax(config: DisableSyntaxConfig)
 
   private val noFinalVal: LintCategory =
     LintCategory.error(
-      id = "noFinalVal",
+      id = "finalVal",
       explain = "Final vals cause problems with incremental compilation"
     )
 
   private val noValPatternCategory: LintCategory =
     LintCategory.error(
-      id = "noValPatterns",
+      id = "valPatterns",
       explain =
         "Pattern matching in val assignment can result in match error, " +
           "use \"_ match { ... }\" with a fallback case instead."
